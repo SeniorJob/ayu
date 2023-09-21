@@ -27,7 +27,7 @@ jobs:
           gitlab_token: ${{ secrets.GITLAB_TOKEN }}
         run: | 
           git remote add gitlab https://${gitlab_username}:${gitlab_token}@${gitlab_url#https://};
-      - name: Force push everthing
-        run: | 
-          git push -f --all gitlab;
-          git push -f --tags gitlab;
+     # - name: Force push everthing
+     #   run: | 
+     #     git push -f --all gitlab;
+     #     git push -f --tags gitlab;
