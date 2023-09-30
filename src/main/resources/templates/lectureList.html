@@ -1,0 +1,22 @@
+<!-- resources/templates/lectureList.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>강좌 목록</title>
+</head>
+<body>
+
+<h2>강좌 목록</h2>
+
+<ul>
+    <li th:each="lecture : ${lectures}">
+        <a th:href="@{/lecture/detail/{create_id}(create_id=${lecture.create_id})}" th:text="${lecture.title}"></a>
+    </li>
+</ul>
+
+
+<a th:href="@{/main}">메인 페이지로 돌아가기</a>
+
+</body>
+</html>

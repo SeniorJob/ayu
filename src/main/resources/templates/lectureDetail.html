@@ -1,0 +1,20 @@
+<!-- resources/templates/lectureDetail.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${lecture.title}"></title>
+</head>
+<body>
+
+<h2 th:text="${lecture.title}">강좌제목 : </h2>
+
+<p><strong>카테고리 :</strong>
+    <span th:if="${lecture.category != null}" th:text="${lecture.category}"></span>
+    <span th:if="${lecture.category == null}">N/A</span></p>
+
+
+<a th:href="@{/lecture/list}">강좌목록으로 돌아가기</a>
+
+</body>
+</html>

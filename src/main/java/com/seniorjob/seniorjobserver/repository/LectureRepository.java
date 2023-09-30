@@ -19,5 +19,9 @@ public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
 
     List<LectureEntity> findAllByUser(UserEntity user);
     List<LectureEntity> findByStatus(LectureEntity.LectureStatus valueOf);
+
+    void deleteByUser(UserEntity user);
+
+    List<LectureEntity> findByUser(UserEntity user);
 }
 

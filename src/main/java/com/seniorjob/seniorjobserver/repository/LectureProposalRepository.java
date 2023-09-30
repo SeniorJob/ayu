@@ -19,5 +19,5 @@ public interface LectureProposalRepository extends JpaRepository<LectureProposal
     Page<LectureProposalEntity> findAll(Pageable pageable);
 
     List<LectureProposalEntity> findAllByUser(UserEntity user);
-
+    List<LectureProposalEntity> findByUser(UserEntity user);
 }

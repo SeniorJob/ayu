@@ -93,8 +93,7 @@ public class UserService {
         return convertToDo(userEntity);
     }
 
-    // 회원 탈퇴 및 관련 활동 삭제
-
+    // 회원탈퇴 service
 
     private UserDto convertToDo(UserEntity userEntity) {
         return UserDto.builder()

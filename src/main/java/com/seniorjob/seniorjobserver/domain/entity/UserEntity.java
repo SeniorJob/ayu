@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user") // 가입된 구인자, 강사 회원정보
 public class UserEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long uid;

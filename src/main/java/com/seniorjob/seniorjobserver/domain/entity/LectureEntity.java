@@ -77,7 +77,7 @@ public class LectureEntity extends TimeEntity {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long create_id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private UserEntity user;
 
