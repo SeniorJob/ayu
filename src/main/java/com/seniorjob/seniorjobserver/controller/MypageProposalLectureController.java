@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -54,7 +55,21 @@ public class MypageProposalLectureController {
     }
 
 
-
     // 세션로그인후 자신이 참여한 강좌 글 전체 조화 API (참여강좌)
+    @GetMapping("/myProposalDetail/{id}")
+    public ResponseEntity<LectureProposalDto> getMyProposalDetail(
+            @PathVariable("id") Long proposalId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
+            LectureProposalDto proposalDto = lectureProposalService.getMyProposalDetail(proposalId);
+            return ResponseEntity.ok(proposalDto);
+        } catch (ResponseStatusException ex) {
+            // NOT_FOUND 예외가 발생한 경우
+            return ResponseEntity.status(ex.getStatus()).body(null);
+        }
+    }
 }

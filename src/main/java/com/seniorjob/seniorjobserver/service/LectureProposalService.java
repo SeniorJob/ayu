@@ -156,4 +156,13 @@ public class LectureProposalService {
         lectureProposalRepository.deleteById(proposal_id);
         return "강좌제안 " + proposal_id + "를 삭제하였습니다.";
     }
+
+    // 세션로그인 후 자신의 제안강좌 상세보기
+    public LectureProposalDto getMyProposalDetail(Long proposal_id) {
+        LectureProposalEntity entity = lectureProposalRepository.findById(proposal_id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("조회하신 %d는 없는 강좌입니다.", proposal_id)));
+
+        return LectureProposalDto.convertToDto(entity);
+    }
 }

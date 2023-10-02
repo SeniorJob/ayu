@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.controller;
 
+import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,6 +56,27 @@ public class MypageCreateLectureController {
         }
 
         return ResponseEntity.ok(myLectureAll);
+    }
+
+
+    // 세션로그인 후 자신이 개설한 강좌 글 상세보기 API
+    @GetMapping("/myLectureDetail/{id}")
+    public ResponseEntity<LectureDto> getMyLectureDetail(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        LectureDto lecture = lectureService.getMyLectureDetail(id, currentUser.getUid());
+
+        if (lecture != null) {
+            LectureEntity.LectureStatus status = lectureService.getLectureStatus(id);
+            lecture.setStatus(status);
+            return ResponseEntity.ok(lecture);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
