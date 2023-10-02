@@ -55,7 +55,7 @@ public class MypageProposalLectureController {
     }
 
 
-    // 세션로그인후 자신이 참여한 강좌 글 전체 조화 API (참여강좌)
+    // 세션로그인후 자신이 개설한 강좌 제안 상세보기 API (참여강좌)
     @GetMapping("/myProposalDetail/{id}")
     public ResponseEntity<LectureProposalDto> getMyProposalDetail(
             @PathVariable("id") Long proposalId,
