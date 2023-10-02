@@ -1,0 +1,24 @@
+<!-- resoirces/templates/index.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to SeniorJob</title>
+</head>
+<body>
+<div style="text-align: right; margin-right: 20px;">
+    <a href="/login">로그인</a>
+</div>
+<div style="text-align: center">
+    <h1>시니어 일자리에 오신것을 환영합니다.</h1>
+    <p>여기는 홈페이지 입니다.</p>
+    <nav style="text-align: center;">
+        <ul>
+            <li><a th:href="@{/lecture/lectureList}">강좌 목록</a></li>
+            <li><a th:href="@{/user/info}">회원 정보</a></li>
+        </ul>
+    </nav>
+
+</div>
+</body>
+</html>

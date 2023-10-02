@@ -20,4 +20,8 @@ public interface LectureProposalApplyRepository extends JpaRepository<LecturePro
     boolean existsByUserAndLectureProposal(UserEntity user, LectureProposalEntity lectureProposal);
 
     Optional<LectureProposalApplyEntity> findByLectureProposalAndRecruitmentClosed(LectureProposalEntity lectureProposal, boolean recruitmentClosed);
+
+    void deleteByUser(UserEntity user);
+
+    void deleteByLectureProposal(LectureProposalEntity proposal);
 }

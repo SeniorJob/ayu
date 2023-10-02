@@ -77,7 +77,7 @@ public class LectureEntity extends TimeEntity {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long create_id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private UserEntity user;
 
@@ -139,7 +139,6 @@ public class LectureEntity extends TimeEntity {
 
     @Column(name = "recruitEnd_date", columnDefinition = "datetime")
     private LocalDateTime recruitEnd_date;
-
 
     @Builder
     public LectureEntity(Long create_id, UserEntity user, String creator, Integer maxParticipants, Integer currentParticipants, String category,
