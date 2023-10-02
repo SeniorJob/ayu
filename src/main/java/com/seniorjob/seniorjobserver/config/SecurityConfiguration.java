@@ -53,7 +53,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .formLogin()
                     .loginPage("/login")
                     .loginProcessingUrl("/login")
-                    .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())  // 이 부분을 수정
+                    .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())  
                     .permitAll()
                 .and()
                 .httpBasic()
