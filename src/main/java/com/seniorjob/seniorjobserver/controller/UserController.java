@@ -1,9 +1,11 @@
 package com.seniorjob.seniorjobserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
+import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.UserDto;
-import com.seniorjob.seniorjobserver.repository.UserRepository;
+import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.service.StorageService;
 import com.seniorjob.seniorjobserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +29,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -34,15 +38,23 @@ public class UserController {
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final ObjectMapper objectMapper;
+    private final LectureRepository lectureRepository;
+    private final LectureApplyRepository lectureApplyRepository;
+    private final LectureProposalRepository lectureProposalRepository;
+    private final LectureProposalApplyRepository lectureProposalApplyRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService, UserRepository userRepository, PasswordEncoder pwEncoder, StorageService storageService, ObjectMapper objectMapper) {
+    public UserController(UserService userService, UserRepository userRepository, PasswordEncoder pwEncoder, StorageService storageService, ObjectMapper objectMapper, LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository, LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.objectMapper = objectMapper;
+        this.lectureRepository = lectureRepository;
+        this.lectureApplyRepository = lectureApplyRepository;
+        this.lectureProposalRepository = lectureProposalRepository;
+        this.lectureProposalApplyRepository = lectureProposalApplyRepository;
     }
 
     // 구직자/사업주 회원가입API with 암호화 세션//
@@ -62,7 +74,7 @@ public class UserController {
             }
 
             // 비밀번호 확인 비교
-            if(!encryptionCode.equals(confirmPassword)){
+            if (!encryptionCode.equals(confirmPassword)) {
                 return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다!!");
             }
 
@@ -169,20 +181,49 @@ public class UserController {
     }
 
     // 회원탈퇴 API
-    // DELETE /api/user/delete
+    // PUT /api/users/delete (로그인후 이용자의 비밀번호 확인후 일치시 삭제)
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteUser(){
+    @Transactional
+    public ResponseEntity<?> deleteUser(
+            @RequestBody Map<String, String> payload,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String password = payload.get("password");
         try {
-           // userService.deleteUser();
-            return ResponseEntity.ok("회원 탈퇴가 정상적으로 완료되었습니다.");
-        }catch (IllegalStateException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }catch (UsernameNotFoundException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }catch (Exception e){
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("오류메시지 : " + e.getMessage());
+            UserEntity user = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            if (!passwordEncoder.matches(password, user.getEncryptionCode())) {
+                return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+            }
+
+            // 강좌에 신청한 사용자의 신청 정보를 삭제
+            lectureApplyRepository.deleteByUser(user);
+
+            // 해당 사용자가 생성한 강좌를 가져옴
+            List<LectureEntity> userLectures = lectureRepository.findByUser(user);
+            for (LectureEntity lecture : userLectures) {
+                // 강좌에 대한 모든 신청 정보를 삭제
+                lectureApplyRepository.deleteByLecture(lecture);
+            }
+            lectureRepository.deleteAll(userLectures); // 강좌 삭제
+
+            // 강좌 제안에 신청한 사용자의 신청 정보를 삭제
+            lectureProposalApplyRepository.deleteByUser(user);
+
+            // 해당 사용자가 생성한 강좌 제안을 가져옴
+            List<LectureProposalEntity> userProposals = lectureProposalRepository.findByUser(user);
+            for (LectureProposalEntity proposal : userProposals) {
+                // 강좌 제안에 대한 모든 신청 정보를 삭제
+                lectureProposalApplyRepository.deleteByLectureProposal(proposal);
+            }
+            lectureProposalRepository.deleteAll(userProposals); // 강좌 제안 삭제
+
+            // 사용자를 삭제
+            userRepository.delete(user);
+
+            return ResponseEntity.ok("회원탈퇴에 성공하였습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
-
 }

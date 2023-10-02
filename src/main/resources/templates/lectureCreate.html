@@ -1,0 +1,125 @@
+<!--resources/templates/lectureCreate-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>강좌 개설</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h2>강좌 개설</h2>
+
+<form id="lectureForm" th:action="@{/api/lectures}" method="post" enctype="multipart/form-data">
+  <div>
+    <label for="title">작성자</label>
+    <input type="text" id="creator" name="creator" required>
+  </div>
+  <div>
+    <label for="title">강좌 제목</label>
+    <input type="text" id="title" name="title" required>
+  </div>
+  <div>
+    <label for="category">카테고리</label>
+    <input type="text" id="category" name="category" required>
+  </div>
+  <div>
+    <label for="content">내용</label>
+    <textarea id="content" name="content" required></textarea>
+  </div>
+  <div>
+    <label for="price">가격</label>
+    <input type="number" id="price" name="price" required>
+  </div>
+  <div>
+    <label for="cycle">주기 : 윌/주</label>
+    <input type="text" id="cycle" name="cycle" required>
+  </div>
+  <div>
+    <label for="recruitEnd_date">모집마감날짜 : </label>
+    <input type="datetime-local" id="recruitEnd_date" name="recruitEnd_date" required>
+  </div>
+    <label for="start_date">시작 날짜</label>
+    <input type="datetime-local" id="start_date" name="start_date" required>
+  </div>
+  <div>
+    <label for="end_date">종료 날짜</label>
+    <input type="datetime-local" id="end_date" name="end_date" required>
+  </div>
+
+  <div>
+    <label for="region">지역</label>
+    <input type="text" id="region" name="region" required>
+  </div>
+
+  <div>
+    <label for="max_participants">최대 참가자 수</label>
+    <input type="number" id="max_participants" name="max_participants" required>
+  </div>
+
+  <div>
+    <label for="bank_name">은행 이름</label>
+    <input type="text" id="bank_name" name="bank_name" required>
+  </div>
+
+  <div>
+    <label for="account_name">계좌 이름</label>
+    <input type="text" id="account_name" name="account_name" required>
+  </div>
+
+  <div>
+    <label for="account_number">계좌 번호</label>
+    <input type="text" id="account_number" name="account_number" required>
+  </div>
+
+  <div>
+    <label for="file">이미지 업로드</label>
+    <input type="file" id="file" name="file">
+  </div>
+
+  <br><br>
+  <button type="submit">강좌 개설</button>
+  <button type="button" onclick="window.location.href='/lecture/lectureList';">강좌목록으로 돌아가기</button>
+</form>
+
+<script>
+document.getElementById('lectureForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const lectureDto = {
+        creator: this.creator.value,
+        title: this.title.value,
+        category: this.category.value,
+        content: this.content.value,
+        price: this.price.value,
+        cycle: this.cycle.value,
+        recruitEnd_date: this.recruitEnd_date.value,
+        start_date: this.start_date.value,
+        end_date: this.end_date.value,
+        region: this.region.value,
+        max_participants: this.max_participants.value,
+        bank_name: this.bank_name.value,
+        account_name: this.account_name.value,
+        account_number: this.account_number.value,
+    };
+
+    formData.append('lectureDto', JSON.stringify(lectureDto));
+
+    try {
+        const response = await axios.post(this.action, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        console.log(response.data);  // 로그를 확인하여 응답을 검증하세요.
+        window.location.href = '/lecture/lectureList';  // 성공적으로 강좌가 생성된 후, 강좌 목록 페이지로 리다이렉트합니다.
+    } catch (error) {
+        console.error('There was an error!', error);  // 에러 로그를 출력합니다.
+    }
+});
+</script>
+
+
+</body>
+</html>

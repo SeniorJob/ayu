@@ -1,0 +1,20 @@
+<!-- resources/templates/main.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>메인 페이지</title>
+</head>
+<body>
+
+<h2>환영합니다, <span th:text=" ${user.name}"></span>님!</h2>
+
+<nav>
+  <ul>
+    <li><a th:href="@{/lecture/lectureList}">강좌 목록</a></li>
+    <li><a th:href="@{/user/info}">회원 정보</a></li>
+  </ul>
+</nav>
+
+</body>
+</html>

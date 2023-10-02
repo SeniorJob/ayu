@@ -24,5 +24,9 @@ public interface LectureApplyRepository extends JpaRepository<LectureApplyEntity
     Optional<Object> findByLectureAndRecruitmentClosed(LectureEntity lecture, boolean b);
 
     List<LectureApplyEntity> findByUser(UserEntity user);
+
+    void deleteByUser(UserEntity user);
+
+    void deleteByLecture(LectureEntity lecture);
 }
 

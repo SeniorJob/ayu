@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +49,7 @@ public class LectureService {
         String currentPrincipalName = authentication.getName();
         UserEntity user = userRepository.findByPhoneNumber(currentPrincipalName)
                 .orElseThrow(() -> new RuntimeException("로그인된 사용자를 찾을 수 없습니다."));
-        System.out.println("Current user: " + user); // or use a proper logger
+        System.out.println("Current user: " + user);
 
         return user;
     }
@@ -339,4 +340,11 @@ public class LectureService {
         lecture.setStatus(LectureStatus.진행상태); // 강좌 상태를 진행 중으로 변경
         lectureRepository.save(lecture);
     }
+
+    public Boolean isLectureClosed(Long lectureId) {
+        return lectureRepository.findById(lectureId)
+                .map(lecture -> Optional.ofNullable(lecture.getRecruitmentClosed()).orElse(false))
+                .orElse(false);
+    }
+
 }

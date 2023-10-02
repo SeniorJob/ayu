@@ -20,4 +20,5 @@ public interface LectureProposalRepository extends JpaRepository<LectureProposal
 
     List<LectureProposalEntity> findAllByUser(UserEntity user);
 
+    List<LectureProposalEntity> findByUser(UserEntity user);
 }

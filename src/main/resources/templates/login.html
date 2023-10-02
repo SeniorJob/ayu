@@ -1,0 +1,29 @@
+<!--resources/templates/login.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>회원 로그인</title>
+</head>
+<body>
+
+<h2>로그인</h2>
+
+<form th:action="@{/login}" method="post">
+  <div>
+    <label for="username">사용자 전화번호 :</label>
+    <input type="text" id="username" name="username" required>
+  </div>
+  <div>
+    <label for="password">비밀번호 :</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <div>
+    <button type="submit">로그인</button>
+    <a href="/forgot-password">비밀번호 찾기</a>
+    <a href="/register">회원가입</a>
+  </div>
+</form>
+
+</body>
+</html>

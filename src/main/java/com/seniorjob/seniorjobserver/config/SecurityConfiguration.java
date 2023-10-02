@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
@@ -35,6 +36,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectures/all", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/search",
                         "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list",
                         "/api/lectureproposal/all", "/api/lectureproposal/detail/**").permitAll()
+                        .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**").permitAll()
                 .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/close", "/api/lectures/myLectureAll",
                         "api/lectures/myLectureDetail/**", "aip/lectureapply/cancel/**",
@@ -44,8 +46,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureproposalapply/close",
                         "/api/mypageApplyLecture/myApplyLectureAll", "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageCreateLecture/myCreateLectureAll",
-                        "/api/myProposalLecture/myProposalAll", "/api/user/delete").authenticated()
+                        "/api/myProposalLecture/myProposalAll", "/api/users/delete").authenticated()
+                .antMatchers("/lectureCreate").authenticated()
                 .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+                    .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())  // 이 부분을 수정
+                    .permitAll()
                 .and()
                 .httpBasic()
                 .and()
@@ -53,11 +62,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.setCharacterEncoding("UTF-8");
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    PrintWriter out = response.getWriter();
-                    out.println("{\"message\":\"로그인이 필요합니다.\"}");
+                    if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+                        response.setCharacterEncoding("UTF-8");
+                        response.setContentType("application/json");
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        PrintWriter out = response.getWriter();
+                        out.println("{\"message\":\"로그인이 필요합니다.\"}");
+                    } else {
+                        response.sendRedirect("/login");
+                    }
                 })
                 .accessDeniedHandler(new CustomAccessDeniedHandler())
                 .and()

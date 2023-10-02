@@ -61,6 +61,8 @@ public class LectureDto {
         this.status = status;
     }
 
+    private Boolean recruitmentClosed;
+
     public LectureEntity toEntity(UserEntity userEntity) {
         LectureEntity lectureEntity = LectureEntity.builder()
                 .create_id(create_id)

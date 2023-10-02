@@ -1,0 +1,24 @@
+<!-- resources/templates/userinfo.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>User Info</title>
+</head>
+<body>
+
+<h2>회원 개인 정보</h2>
+
+  <p th:text="'사용자이름 : ' + ${user.name}"></p>
+  <p th:text="'비밀번호 : ' + ${user.encryptionCode}"></p>
+  <p th:text="'로그인 타입 : ' + ${user.loginType}"></p>
+  <p th:text="'사용자 타입 : ' + ${user.userType}"></p>
+  <p th:text="'휴대폰번호 : ' + ${user.phoneNumber}"></p>
+  <p th:text="'카테고리 : ' + ${user.category}"></p>
+  <p th:text="'직업: ' + ${user.job}"></p>
+  <p th:text="'지역: ' + ${user.region}"></p>
+  <p th:text="'생년월일 : ' + ${user.dateOfBirth}"></p>
+  <p th:text="'가입날짜 : ' + ${user.createDate}"></p>
+
+</body>
+</html>
