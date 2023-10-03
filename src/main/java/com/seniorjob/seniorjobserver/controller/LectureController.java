@@ -62,7 +62,7 @@ public class LectureController {
 		LectureDto lectureDto = objectMapper.readValue(lectureDtoJson, LectureDto.class);
 
 		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
 		lectureDto.setUser(currentUser); // 현재 로그인된 사용자의 정보를 강좌 DTO에 설정
 
@@ -95,7 +95,7 @@ public class LectureController {
 		LectureDto lectureDto = objectMapper.readValue(lectureDtoJson, LectureDto.class);
 
 		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
 		// 현재 사용자가 강좌의 생성자인지 확인
 		LectureEntity lectureEntity = lectureRepository.findById(id)
@@ -146,7 +146,7 @@ public class LectureController {
 	public ResponseEntity<String> deleteLecture(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails) {
 
 		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-						.orElseThrow(()-> new UsernameNotFoundException("User not find Exception"));
+						.orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
 		LectureEntity lectureEntity = lectureRepository.findById(id)
 						.orElseThrow(()-> new RuntimeException("강좌 아이디를 찾지 못함 : " + id));

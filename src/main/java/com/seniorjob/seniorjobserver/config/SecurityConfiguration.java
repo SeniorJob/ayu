@@ -36,7 +36,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectures/all", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/search",
                         "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list",
                         "/api/lectureproposal/all", "/api/lectureproposal/detail/**").permitAll()
-                        .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**").permitAll()
+                .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
+                        "/register").permitAll()
                 .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/close", "/api/lectures/myLectureAll",
                         "api/lectures/myLectureDetail/**", "aip/lectureapply/cancel/**",

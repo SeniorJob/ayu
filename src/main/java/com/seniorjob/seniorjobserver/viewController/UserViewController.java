@@ -10,21 +10,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Controller
 public class UserViewController {
 
-    @Autowired
     private UserService userService;
-
     private final UserRepository userRepository;
-
     @Autowired
-    public UserViewController(UserRepository userRepository) {
+    public UserViewController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
         this.userRepository = userRepository;
     }
 
@@ -50,6 +47,7 @@ public class UserViewController {
         return "main";
     }
 
+    // 자기정보
     @GetMapping("/user/info")
     public String userInfo(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         if (userDetails != null) {
@@ -62,5 +60,11 @@ public class UserViewController {
             model.addAttribute("user", user);
         }
         return "userinfo";
+    }
+
+    // 회원가입
+    @GetMapping("/register")
+    public String showRegistrationForm(){
+        return "register";
     }
 }
