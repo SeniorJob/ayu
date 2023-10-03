@@ -67,7 +67,7 @@ public class UserEntity {
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
-    @Column(name = "create_date")
+    @Column(name = "create_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
     private LocalDateTime createDate;
 
     @Builder

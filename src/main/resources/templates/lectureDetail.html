@@ -28,6 +28,9 @@
 <p><strong>주기 :</strong>
   <span th:if="${lecture.cycle != null}" th:text="${lecture.cycle}"></span>
   <span th:if="${lecture.cycle == null}">N/A</span></p>
+<p><strong>횟수 :</strong>
+  <span th:if="${lecture.count != null}" th:text="${lecture.count}"></span>
+  <span th:if="${lecture.count == null}">N/A</span></p>
 <p><strong>모집 마감 날짜 :</strong>
   <span th:if="${lecture.recruitEnd_date != null}" th:text="${#temporals.format(lecture.recruitEnd_date, 'yyyy-MM-dd HH:mm')}"></span></p>
 <p><strong>시작 날짜 :</strong>
@@ -54,8 +57,8 @@
   <span th:if="${lecture.status == null}">N/A</span></p>
 
 <p><strong>강좌 모집 마감 여부 :</strong>
-  <span th:if="${lecture.status != '신청가능상태'}">마감</span>
-  <span th:if="${lecture.status == '신청가능상태'}">모집 중</span></p>
+  <span th:if="${lecture.status != null and #strings.equalsIgnoreCase(lecture.status, '신청가능상태')}">모집 중</span>
+  <span th:if="${lecture.status == null or !#strings.equalsIgnoreCase(lecture.status, '신청가능상태')}">마감</span></p>
 
   <img th:if="${lecture.image_url != null}" th:src="${lecture.image_url}" alt="강좌 이미지" width="300">
 <span th:if="${lecture.image_url == null}">이미지 없음</span>

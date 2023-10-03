@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +81,7 @@ public class UserController {
 
             String imageUrl = storageService.uploadImage(file);
             userDto.setImgKey(imageUrl);
+            userDto.setCreateDate(LocalDateTime.now());
 
             UserEntity userEntity = userService.createUser(userDto);
             return ResponseEntity.ok(userEntity);
