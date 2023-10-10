@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
@@ -81,7 +82,26 @@ public class MypageApplyLectureController {
         }
     }
 
-    // 세션로그인후 자신이 신청이유 삭제 API (신청강좌)
-    // api/lectureapply/cancel/{lectureid}
+    // 세션로그인후 자신이 신청한 강좌 삭제 API (신청강좌)
+    @DeleteMapping("/deleteLectureApply/{lectureId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteLectureApply(
+            @PathVariable Long lectureId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+            LectureApplyEntity cancelledLectureApply = lectureApplyService.cancelLectureApply(currentUser.getUid(), lectureId);
+
+            return ResponseEntity.ok("강좌 신청이 취소되었습니다. Lecture ID: " + cancelledLectureApply.getLecture().getCreate_id());
+        } catch (EntityNotFoundException e) {
+            log.error("Lecture not found. ID: " + lectureId, e);
+            return ResponseEntity.badRequest().body("강좌를 찾을 수 없습니다. ID: " + lectureId);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }
 

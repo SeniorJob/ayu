@@ -22,5 +22,4 @@ public class HomeViewController {
         model.addAttribute("lectures", lectureList);
         return "index";
     }
-
 }

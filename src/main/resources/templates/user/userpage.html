@@ -1,0 +1,24 @@
+<!-- resources/templates/user/userpage.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 관리(왼쪽위 회원괸리 토글생성 예정)</title>
+</head>
+<body>
+<div style="text-align: right; margin-right: 20px;">
+    이곳은 알림창 || <a href="/logout">로그아웃</a>
+</div>
+<div style="text-align: center">
+    <h1>회원 관리 페이지</h1>
+    <nav style="text-align: center;">
+        <ul>
+            <li><a th:href="@{/user/info}">회원 정보</a></li>
+            <li><a th:href="@{/user/mypage}">마이 페이지</a></li>
+        </ul>
+    </nav>
+    <br><br>
+    <a th:href="@{/}">메인 페이지로 돌아가기</a>
+</div>
+</body>
+</html>

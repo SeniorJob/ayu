@@ -63,6 +63,8 @@
   <img th:if="${lecture.image_url != null}" th:src="${lecture.image_url}" alt="강좌 이미지" width="300">
 <span th:if="${lecture.image_url == null}">이미지 없음</span>
 
+
+
 <br><br><a th:href="@{/lecture/lectureList}">강좌목록으로 돌아가기</a>
 
 </body>

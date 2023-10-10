@@ -4,6 +4,8 @@ import com.seniorjob.seniorjobserver.controller.CustomAccessDeniedHandler;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,11 +18,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 
+@SpringBootApplication
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -37,7 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list",
                         "/api/lectureproposal/all", "/api/lectureproposal/detail/**").permitAll()
                 .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
-                        "/register").permitAll()
+                        "/register", "/lecture/cancel-lecture-apply/**").permitAll()
                 .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/close", "/api/lectures/myLectureAll",
                         "api/lectures/myLectureDetail/**", "aip/lectureapply/cancel/**",
@@ -47,13 +52,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureproposalapply/close",
                         "/api/mypageApplyLecture/myApplyLectureAll", "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageCreateLecture/myCreateLectureAll",
-                        "/api/myProposalLecture/myProposalAll", "/api/users/delete").authenticated()
-                .antMatchers("/lectureCreate").authenticated()
+                        "/api/myProposalLecture/myProposalAll", "/api/users/delete", "/api/mypageApplyLecture/deleteLectureApply/**"
+                ).authenticated()
+                .antMatchers("/lectureCreate", "/mypage/applied-lectures",
+                        "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**").authenticated()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
                     .loginPage("/login")
+                    .defaultSuccessUrl("/main")
                     .loginProcessingUrl("/login")
+                    .failureHandler(new CustomAuthFailureHandler())
                     .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                     .permitAll()
                 .and()
@@ -119,5 +128,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(SecurityConfiguration.class, args);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

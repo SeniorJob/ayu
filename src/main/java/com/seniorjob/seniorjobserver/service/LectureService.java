@@ -143,8 +143,11 @@ public class LectureService {
         existingLecture.setPrice(lectureDto.getPrice());
         existingLecture.setTitle(lectureDto.getTitle());
         existingLecture.setContent(lectureDto.getContent());
-        existingLecture.setCycle(lectureDto.getCycle());
-        existingLecture.setCount(lectureDto.getCount());
+        //existingLecture.setCycle(lectureDto.getCycle());
+        existingLecture.setWeek(lectureDto.getWeek());
+        existingLecture.setLearningTarget(lectureDto.getLearning_target());
+        existingLecture.setAttendanceRequirements(lectureDto.getAttendance_requirements());
+        //existingLecture.setCount(lectureDto.getCount());
         existingLecture.setStart_date(lectureDto.getStart_date());
         existingLecture.setEnd_date(lectureDto.getEnd_date());
         existingLecture.setRecruitEnd_date(lectureDto.getRecruitEnd_date());
@@ -308,8 +311,11 @@ public class LectureService {
                 .price(lectureEntity.getPrice())
                 .title(lectureEntity.getTitle())
                 .content(lectureEntity.getContent())
-                .cycle(lectureEntity.getCycle())
-                .count(lectureEntity.getCount())
+                //.cycle(lectureEntity.getCycle())
+                .week(lectureEntity.getWeek())
+                .learning_target(lectureEntity.getLearningTarget())
+                .attendance_requirements(lectureEntity.getAttendanceRequirements())
+                //.count(lectureEntity.getCount())
                 .start_date(lectureEntity.getStart_date())
                 .end_date(lectureEntity.getEnd_date())
                 .region(lectureEntity.getRegion())
@@ -346,5 +352,4 @@ public class LectureService {
                 .map(lecture -> Optional.ofNullable(lecture.getRecruitmentClosed()).orElse(false))
                 .orElse(false);
     }
-
 }
