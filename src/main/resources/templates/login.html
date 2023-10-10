@@ -3,27 +3,37 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>회원 로그인</title>
+  <title>로그인</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
 
-<h2>로그인</h2>
+<div class="container">
+  <h2 class="mt-5">로그인</h2>
 
-<form th:action="@{/login}" method="post">
-  <div>
-    <label for="username">사용자 전화번호 :</label>
-    <input type="text" id="username" name="username" required>
-  </div>
-  <div>
-    <label for="password">비밀번호 :</label>
-    <input type="password" id="password" name="password" required>
-  </div>
-  <div>
-    <button type="submit">로그인</button>
-    <a href="/forgot-password">비밀번호 찾기</a>
-    <a href="/register">회원가입</a>
-  </div>
-</form>
+  <form th:action="@{/login}" method="post" class="mt-4">
+    <div class="form-group">
+      <label for="username">사용자 전화번호 :</label>
+      <input type="text" id="username" name="username" required class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="password">비밀번호 :</label>
+      <input type="password" id="password" name="password" required class="form-control">
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary">로그인</button>
+      <a href="/forgot-password" class="btn btn-link">비밀번호 찾기</a>
+      <a href="/register" class="btn btn-link">회원가입</a>
+    </div>
 
+    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+      <p th:text="${param.message}">오류 메시지</p>
+    </div>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

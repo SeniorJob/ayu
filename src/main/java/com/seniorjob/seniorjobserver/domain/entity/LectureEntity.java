@@ -90,6 +90,12 @@ public class LectureEntity extends TimeEntity {
     @Column(name = "current_participants")
     private Integer currentParticipants;
 
+    @Column(name = "learning_target")
+    private String learningTarget;
+
+    @Column(name = "attendance_requirements")
+    private Integer attendanceRequirements;
+
     @Column(name = "category")
     private String category;
 
@@ -111,11 +117,13 @@ public class LectureEntity extends TimeEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "cycle")
-    private String cycle;
+//    @Column(name = "cycle")
+//    private String cycle;
+    @Column(name = "week")
+    private Integer week;
 
-    @Column(name = "count")
-    private Integer count;
+//    @Column(name = "count")
+//    private Integer count;
 
     @Column(name = "start_date", columnDefinition = "datetime")
     private LocalDateTime start_date;
@@ -141,15 +149,18 @@ public class LectureEntity extends TimeEntity {
     private LocalDateTime recruitEnd_date;
 
     @Builder
-    public LectureEntity(Long create_id, UserEntity user, String creator, Integer maxParticipants, Integer currentParticipants, String category,
+    public LectureEntity(Long create_id, UserEntity user, String creator, Integer maxParticipants, Integer currentParticipants, String learningTarget,
+                         Integer attendanceRequirements, String category,
                          String bank_name, String account_name, String account_number, Integer price, String title, String content,
-                         String cycle, Integer count, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
+                         Integer week, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
                          LocalDateTime createdDate, LocalDateTime recruitEnd_date) {
         this.create_id = create_id;
         this.user = user;
         this.creator = creator;
         this.maxParticipants = maxParticipants;
         this.currentParticipants = currentParticipants;
+        this.learningTarget = learningTarget;
+        this.attendanceRequirements = attendanceRequirements;
         this.category = category;
         this.bank_name = bank_name;
         this.account_name = account_name;
@@ -157,8 +168,9 @@ public class LectureEntity extends TimeEntity {
         this.price = price;
         this.title = title;
         this.content = content;
-        this.cycle = cycle;
-        this.count = count;
+        //this.cycle = cycle;
+        this.week = week;
+        //this.count = count;
         this.start_date = start_date;
         this.end_date = end_date;
         this.region = region;

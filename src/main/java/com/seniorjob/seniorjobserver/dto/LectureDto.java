@@ -38,8 +38,11 @@ public class LectureDto {
     private Integer price;
     private String title;
     private String content;
-    private String cycle;
-    private Integer count;
+    //private String cycle;
+    private Integer week;
+    //private Integer count;
+    private String learning_target;
+    private Integer attendance_requirements;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime start_date;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
@@ -77,8 +80,11 @@ public class LectureDto {
                 .price(price)
                 .title(title)
                 .content(content)
-                .cycle(cycle)
-                .count(count)
+                //.cycle(cycle)
+                .week(week)
+                .learningTarget(learning_target)
+                .attendanceRequirements(attendance_requirements)
+                //.count(count)
                 .start_date(start_date)
                 .end_date(end_date)
                 .region(region)
@@ -97,7 +103,7 @@ public class LectureDto {
     @Builder
     public LectureDto(Long create_id,String creator, UserEntity user,String userName, Integer max_participants, Integer current_participants, String category,
                       String bank_name, String account_name, String account_number, Integer price, String title, String content,
-                      String cycle, Integer count, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
+                      Integer week, String learning_target, Integer attendance_requirements, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
                       LocalDateTime createdDate, LocalDateTime recruitEnd_date, LectureEntity.LectureStatus status) {
         this.create_id = create_id;
         this.user = user;
@@ -112,8 +118,11 @@ public class LectureDto {
         this.price = price;
         this.title = title;
         this.content = content;
-        this.cycle = cycle;
-        this.count = count;
+        //this.cycle = cycle;
+        this.week = week;
+        this.learning_target = learning_target;
+        this.attendance_requirements = attendance_requirements;
+        //this.count = count;
         this.start_date = start_date;
         this.end_date = end_date;
         this.region = region;

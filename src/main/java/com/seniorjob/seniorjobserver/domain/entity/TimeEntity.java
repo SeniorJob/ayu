@@ -14,15 +14,10 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class TimeEntity {
+
     @CreatedDate
     private LocalDateTime createdDate;
 
-    @CreatedDate
-    private LocalDateTime createDate;
-
-    @CreatedDate
-    private LocalDateTime updateDate;
-
     @LastModifiedDate
-    private LocalDateTime updated_date;
+    private LocalDateTime updatedDate;
 }

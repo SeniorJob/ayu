@@ -32,6 +32,20 @@ public class LectureApplyDto {
     @JsonIgnore
     private Boolean recruitmentClosed;
 
+    // view
+    private String lectureTitle;
+    private LectureEntity.LectureStatus lectureStatus;
+
+    @JsonIgnore
+    private LectureEntity lectureId; // 이 필드에서 lectureId를 가져올 수 있습니다.
+
+    public Long getLectureId() {
+        if (this.lecture != null) {
+            return this.lecture.getCreate_id();
+        }
+        return null;
+    }
+
     public LectureApplyDto(LectureApplyEntity lectureApply) {
         this.leId = lectureApply.getLeId();
         this.applyReason = lectureApply.getApplyReason();
@@ -39,6 +53,10 @@ public class LectureApplyDto {
         this.userName = lectureApply.getUser().getName();
         this.lectureApplyStatus = lectureApply.getLectureApplyStatus();
         this.recruitmentClosed = lectureApply.getRecruitmentClosed();
+
+        this.lecture = lectureApply.getLecture();
+        this.lectureTitle = lectureApply.getLecture().getTitle();
+        this.lectureStatus = lectureApply.getLecture().getStatus();
     }
 
     public LectureApplyEntity toEntity() {

@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,7 +107,7 @@ public class UserController {
         String currentUserName = authentication.getName();
 
         UserEntity user = userRepository.findByPhoneNumber(currentUserName)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with phone number: " + currentUserName));
+                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. 회원가입을 진행해주세요!"));
 
         return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
     }

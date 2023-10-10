@@ -186,4 +186,10 @@ public class LectureApplyService {
         return lectureApplyRepository.save(lectureApply);
     }
 
+    public LectureApplyDto getLectureApplyById(Long id) {
+        LectureApplyEntity lectureApply = lectureApplyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 ID에 맞는 강좌 신청을 찾을 수 없습니다: " + id));
+
+        return new LectureApplyDto(lectureApply);
+    }
 }

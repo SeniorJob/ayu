@@ -1,0 +1,23 @@
+<!--resources/templates/user/mypage.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이 페이지</title>
+</head>
+<body>
+<div style="text-align: center">
+    <h2>마이 페이지</h2>
+    <nav style="text-align: center;">
+        <ul>
+            <li><a th:href="@{/mypage/applied-lectures}">신청강좌</a></li>
+            <li><a th:href="@{/mypage/created-lectures}">개설강좌</a></li>
+            <li><a th:href="@{/mypage/participated-lectures}">참여강좌</a></li>
+            <li><a th:href="@{/mypage/proposed-lectures}">제안강좌</a></li>
+        </ul>
+    </nav>
+    <br><br>
+    <button type="button" onclick="window.location.href='/user/userpage';">회원관리 페이지로 돌아가기</button>
+</div>
+</body>
+</html>
