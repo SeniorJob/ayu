@@ -43,10 +43,22 @@ public class LectureViewController {
         return "lectureDetail";
     }
 
-    // 강좌개설
-    @GetMapping("/lectureCreate")
+    // 강좌개설 1단계
+    @GetMapping("/lecture/lectureCreate")
     public String createLecture(){
-        return "lectureCreate";
+        return "lecture/lectureCreate";
+    }
+
+    // 강좌개설 2단계
+    @GetMapping("/lecture/lectureCreate2")
+    public String createLectureStep2(){
+        return "lecture/lectureCreate2";
+    }
+
+    // 강좌 개설 3단계
+    @GetMapping("/lecture/lectureCreate3")
+    public String createLectureStep3() {
+        return "lecture/lectureCreate3";
     }
 
     // 강좌 참여 신청을 처리하는 메소드

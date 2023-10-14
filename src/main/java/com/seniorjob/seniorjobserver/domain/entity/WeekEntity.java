@@ -5,6 +5,8 @@ import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -16,6 +18,10 @@ public class WeekEntity extends TimeEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long week_id;
+
+    @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WeekPlanEntity> plans = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "create_id")
     private LectureEntity create_id;

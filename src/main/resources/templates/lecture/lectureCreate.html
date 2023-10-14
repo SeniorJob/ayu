@@ -1,0 +1,229 @@
+<!--resources/templates/lecture/lectureCreate-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>강좌 개설</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <br>
+  <h2>강좌 개설 1단계</h2>
+  <form th:action="@{/lecture/createStep3}" method="post">
+
+    <input type="hidden" th:value="${userId}" id="userId" name="userId" />
+
+    <div class="form-group">
+      <label for="creator">강좌 생성자:</label>
+      <input type="text" class="form-control" id="creator" name="creator" required>
+    </div>
+
+    <div class="form-group">
+      <label for="category">카테고리 선택:</label>
+      <select class="form-control" id="category" name="category">
+        <option value="" disabled selected>선택</option>
+        <option value="외식">외식</option>
+        <option value="서비스">서비스</option>
+        <option value="사무직">사무직</option>
+        <option value="기술">기술</option>
+        <option value="운전">운전</option>
+        <option value="디자인">디자인</option>
+        <option value="IT">IT</option>
+        <option value="생산">생산</option>
+        <option value="교육">교육</option>
+        <option value="의료">의료</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="ImageUrl">강좌 이미지:</label>
+      <input type="file" class="form-control-file" id="ImageUrl" name="file">
+    </div>
+
+    <div class="form-group">
+      <label for="title">강좌 제목:</label>
+      <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+
+    <div class="form-group">
+      <label for="content">강좌 소개:</label>
+      <textarea class="form-control" id="content" name="content" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="learningTarget">학습 대상:</label>
+      <input type="text" class="form-control" id="learningTarget" name="learningTarget" required>
+    </div>
+
+    <div class="form-group">
+      <label for="week">주 : </label>
+      <input type="number" class="form-control" id="week" name="week" required>
+    </div>
+
+    <div class="form-group">
+      <label for="recruitEndDate">모집마감날짜 : </label>
+      <input type="datetime-local" class="form-control" id="recruitEndDate" name="recruitEndDate" required>
+    </div>
+
+    <div class="form-group">
+      <label for="startDate">강좌시작날짜 : </label>
+      <input type="datetime-local" class="form-control" id="startDate" name="startDate" required>
+    </div>
+
+    <div class="form-group">
+      <label for="endDate">강좌종료날짜 : </label>
+      <input type="datetime-local" class="form-control" id="endDate" name="endDate" required>
+    </div>
+
+    <div class="form-group">
+      <label for="maxParticipants">최대 참가자 수 : </label>
+      <input type="number" class="form-control" id="maxParticipants" name="maxParticipants" required>
+    </div>
+
+    <div class="form-group">
+      <label for="region">지역:</label>
+      <input type="text" class="form-control" id="region" name="region" required>
+    </div>
+
+    <div class="form-group">
+      <label for="price">가격:</label>
+      <input type="number" class="form-control" id="price" name="price" required>
+    </div>
+
+    <div class="form-group">
+      <label for="bankName">은행 이름:</label>
+      <select class="form-control" id="bankName" name="bankName">
+        <option value="" disabled selected>선택</option>
+        <option value="국민은행">국민은행</option>
+        <option value="신항은행">신한은행</option>
+        <option value="우리은행">우리은행</option>
+        <option value="농협은행">농협은행</option>
+        <option value="KBE외환은행">KBE외환은행</option>
+        <option value="하나은행">하나은행</option>
+        <option value="수협은행">수협은행</option>
+        <option value="카카오뱅크">카카오뱅크</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="otherBankName" style="display: none;">
+      <label for="otherBankNameInput">은행 이름 직접 입력:</label>
+      <input type="text" class="form-control" id="otherBankNameInput" name="otherBankName">
+    </div>
+
+    <div class="form-group">
+      <label for="accountName">계좌이름:</label>
+      <input type="text" class="form-control" id="accountName" name="accountName" required>
+    </div>
+
+    <div class="form-group">
+      <label for="accountNumber">계좌번호:</label>
+      <input type="text" class="form-control" id="accountNumber" name="accountNumber" required>
+    </div>
+
+    <div class="form-group">
+      <!-- ... your form fields ... -->
+      <button type="button" onclick="submitFormAndGoToNextStep(event)">다음 단계</button>
+    </div>
+  </form>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+
+<script>
+    // 은행 이름이 '기타'로 선택되었을 때 직접 입력 필드를 보이게 하는 코드
+    $('#bankName').change(function() {
+        if ($(this).val() === '기타') {
+            $('#otherBankName').show();
+        } else {
+            $('#otherBankName').hide();
+        }
+    });
+
+    function saveSelectedFile() {
+        const fileInput = document.getElementById('ImageUrl');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('파일을 선택해주세요.');
+            return;
+        }
+
+        // 로컬 스토리지에 파일 정보를 JSON 형태로 저장
+        localStorage.setItem('selectedFile', JSON.stringify(file));
+        alert('파일이 선택되었습니다.');
+    }
+
+
+    // 강좌개설1단계후 3단계로 이동
+    function submitFormAndGoToNextStep(event) {
+        event.preventDefault();
+
+        // 입력 검증
+        if (!validateInputs()) {
+            alert('모든 필드를 올바르게 입력해주세요.');
+            return;
+        }
+
+        const userId = document.getElementById('userId').value;
+        localStorage.setItem('userId', userId);
+
+        // 이미지 파일을 Base64 형태로 인코딩
+        const fileInput = document.getElementById('ImageUrl');
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64Image = e.target.result;
+
+                // 폼 데이터를 객체로 변환하여 로컬 스토리지에 저장
+                const formData = {
+                  creator: $('#creator').val(),
+                  category: $('#category').val(),
+                  week: $('#week').val(),
+                  title: $('#title').val(),
+                  content: $('#content').val(),
+                  learningTarget: $('#learningTarget').val(),
+                  recruitEndDate: $('#recruitEndDate').val(),
+                  startDate: $('#startDate').val(),
+                  endDate: $('#endDate').val(),
+                  maxParticipants: $('#maxParticipants').val(),
+                  region: $('#region').val(),
+                  price: $('#price').val(),
+                  bankName: $('#bankName').val(),
+                  accountName: $('#accountName').val(),
+                  accountNumber: $('#accountNumber').val(),
+                  image: base64Image  // 이미지 데이터를 여기에 저장
+              };
+
+              localStorage.setItem('step1Data', JSON.stringify(formData));
+
+                // 다음 단계로 이동
+                window.location.href = '/lecture/lectureCreate3';
+            };
+
+            reader.readAsDataURL(file); // 파일을 Base64로 읽기
+        } else {
+            alert('이미지 파일을 선택해주세요.');
+        }
+    }
+
+
+    // 입력 검증 함수
+    function validateInputs() {
+        const title = $('#title').val();
+        const content = $('#content').val();
+        const target = $('#learningTarget').val();
+
+        if (!title || !content || !learningTarget) {
+            return false;
+        }
+
+        return true;
+}
+</script>
+
+</body>
+</html>

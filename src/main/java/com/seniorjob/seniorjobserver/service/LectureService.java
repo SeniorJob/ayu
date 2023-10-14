@@ -3,6 +3,7 @@ package com.seniorjob.seniorjobserver.service;
 import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
 import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity.LectureStatus;
@@ -128,6 +129,58 @@ public class LectureService {
         return convertToDto(lectureEntity);
     }
 
+    // 강좌개설3단계 완료처리
+    public void createLecture(CompleteLectureDataDto completeLectureDataDto) {
+        // 강좌 정보 유효성 검사
+        validateLectureData(completeLectureDataDto);
+        UserEntity userEntity = userRepository.findById(completeLectureDataDto.getUserId())
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        // 1단계 강좌 정보 저장
+        LectureEntity lectureEntity = LectureEntity.builder()
+                .user(userEntity)
+                .creator(completeLectureDataDto.getCreator())
+                .category(completeLectureDataDto.getCategory())
+                .image_url(completeLectureDataDto.getImageUrl())
+                .title(completeLectureDataDto.getTitle())
+                .content(completeLectureDataDto.getContent())
+                .learningTarget(completeLectureDataDto.getLearningTarget())
+                .week(completeLectureDataDto.getWeek())
+                .recruitEnd_date(completeLectureDataDto.getRecruitEndDate())
+                .start_date(completeLectureDataDto.getStartDate())
+                .end_date(completeLectureDataDto.getEndDate())
+                .maxParticipants(completeLectureDataDto.getMaxParticipants())
+                .region(completeLectureDataDto.getRegion())
+                .price(completeLectureDataDto.getPrice())
+                .bank_name(completeLectureDataDto.getBankName())
+                .account_name(completeLectureDataDto.getAccountName())
+                .account_number(completeLectureDataDto.getAccountNumber())
+                .build();
+
+        // 데이터베이스에 저장
+        lectureRepository.save(lectureEntity);
+
+        // 로깅 혹은 추가적인 처리 (옵션)
+        log.info("강좌가 성공적으로 생성되었습니다: {}", lectureEntity.getCreate_id());
+    }
+
+    // 강좌 데이터 유효성 검사 메소드
+    private void validateLectureData(CompleteLectureDataDto data) {
+        if (data.getCategory() == null || data.getCategory().trim().isEmpty()) {
+            throw new IllegalArgumentException("카테고리를 선택해주세요!");
+        }
+        if (data.getTitle() == null || data.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("제목을 입력해주세요!");
+        }
+        if (data.getContent() == null || data.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("강좌소개을 입력해주세요!");
+        }
+        if (data.getLearningTarget() == null || data.getLearningTarget().trim().isEmpty()) {
+            throw new IllegalArgumentException("학습대상을 입력해주세요!");
+        }
+
+    }
+
     // 로그인된 유저의 강좌수정
     public LectureDto updateLecture(Long create_id, LectureDto lectureDto) {
         LectureEntity existingLecture = lectureRepository.findById(create_id)
@@ -146,7 +199,7 @@ public class LectureService {
         //existingLecture.setCycle(lectureDto.getCycle());
         existingLecture.setWeek(lectureDto.getWeek());
         existingLecture.setLearningTarget(lectureDto.getLearning_target());
-        existingLecture.setAttendanceRequirements(lectureDto.getAttendance_requirements());
+        //existingLecture.setAttendanceRequirements(lectureDto.getAttendance_requirements());
         //existingLecture.setCount(lectureDto.getCount());
         existingLecture.setStart_date(lectureDto.getStart_date());
         existingLecture.setEnd_date(lectureDto.getEnd_date());
@@ -300,7 +353,6 @@ public class LectureService {
     private LectureDto convertToDto(LectureEntity lectureEntity) {
         return LectureDto.builder()
                 .create_id(lectureEntity.getCreate_id())
-
                 .creator(lectureEntity.getCreator())
                 .max_participants(lectureEntity.getMaxParticipants())
                 .current_participants(lectureEntity.getCurrentParticipants())
@@ -314,7 +366,7 @@ public class LectureService {
                 //.cycle(lectureEntity.getCycle())
                 .week(lectureEntity.getWeek())
                 .learning_target(lectureEntity.getLearningTarget())
-                .attendance_requirements(lectureEntity.getAttendanceRequirements())
+                //.attendance_requirements(lectureEntity.getAttendanceRequirements())
                 //.count(lectureEntity.getCount())
                 .start_date(lectureEntity.getStart_date())
                 .end_date(lectureEntity.getEnd_date())
