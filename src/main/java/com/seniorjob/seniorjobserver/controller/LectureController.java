@@ -2,7 +2,9 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,7 +50,7 @@ public class LectureController {
 		this.lectureRepository = lectureRepository;
 	}
 
-	// 강좌개설API
+	// 강좌개설API 1단계
 	// POST /api/lectures
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping
@@ -65,6 +67,7 @@ public class LectureController {
 				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
 		lectureDto.setUser(currentUser); // 현재 로그인된 사용자의 정보를 강좌 DTO에 설정
+		lectureDto.setCreator(currentUser.getName()); // 로그인된 사용자의 이름을 creator로 지정
 
 		// 이미지 업로드
 		String imageUrl = storageService.uploadImage(file);
@@ -79,6 +82,29 @@ public class LectureController {
 		}
 
 		return ResponseEntity.ok(createdLecture);
+	}
+
+	// 강좌개설 3단계 1,2단계 완료처리API
+	@PostMapping("/completeCreation")
+	public ResponseEntity<?> completeLectureCreation(@RequestBody CompleteLectureDataDto completeData,
+													 @AuthenticationPrincipal UserDetails userDetails) {
+		try {
+			UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+					.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+			completeData.setUserId(currentUser.getUid());
+
+			lectureService.createLecture(completeData);
+			return ResponseEntity.ok("강좌가 성공적으로 개설되었습니다.");
+		} catch (DataIntegrityViolationException e) {
+			log.error("Data integrity violation: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("데이터 유효성 오류가 발생했습니다. 입력 값을 확인해주세요.");
+		} catch (Exception e) {
+			log.error("Error: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("강좌 개설에 실패했습니다. 에러: " + e.getMessage());
+		}
 	}
 
 	// 로그인된 유저의 개설된강좌수정API
@@ -296,7 +322,7 @@ public class LectureController {
 				//.count(lectureEntity.getCount())
 				.week(lectureEntity.getWeek())
 				.learning_target(lectureEntity.getLearningTarget())
-				.attendance_requirements(lectureEntity.getAttendanceRequirements())
+				//.attendance_requirements(lectureEntity.getAttendanceRequirements())
 				.start_date(lectureEntity.getStart_date())
 				.end_date(lectureEntity.getEnd_date())
 				.region(lectureEntity.getRegion())

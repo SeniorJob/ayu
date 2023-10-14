@@ -1,0 +1,55 @@
+/* resources/static/css/style.css */
+.header {
+    width: 1440px;
+    height: 112px;
+    background-color: #FBFBFB;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-container {
+    width: 1392px;
+    height: 60px;
+    background-color: #FFF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px; /* Adjust as needed */
+}
+
+.logo img {
+    height: 48px; /* Adjust as needed */
+}
+
+.search input {
+    height: 38px; /* Adjust as needed */
+    border-radius: 70px;
+    border: none;
+    padding: 0 15px;
+}
+
+.search button {
+    height: 38px; /* Adjust as needed */
+    border-radius: 70px;
+    border: none;
+    cursor: pointer;
+}
+
+.navigation a {
+    margin: 0 15px; /* Adjust as needed */
+    color: #ADD295;
+    font-weight: 700;
+    font-size: 24px;
+    text-decoration: none;
+}
+
+.notification {
+    font-size: 24px; /* Adjust as needed */
+    margin-right: 24px; /* Adjust as needed */
+}
+
+.welcome {
+    font-size: 24px; /* Adjust as needed */
+}

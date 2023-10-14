@@ -52,10 +52,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureproposalapply/close",
                         "/api/mypageApplyLecture/myApplyLectureAll", "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageCreateLecture/myCreateLectureAll",
-                        "/api/myProposalLecture/myProposalAll", "/api/users/delete", "/api/mypageApplyLecture/deleteLectureApply/**"
+                        "/api/myProposalLecture/myProposalAll", "/api/users/delete", "/api/mypageApplyLecture/deleteLectureApply/**",
+                        "/api/lecturesStepTwo/week-title/**", "/api/lectures/completeCreation", "/api/lecturesStepTwo/**/weeks",
+                        "/api/lecturesStepTwo/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review"
                 ).authenticated()
-                .antMatchers("/lectureCreate", "/mypage/applied-lectures",
-                        "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**").authenticated()
+                .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
+                        "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",
+                        "/lecture/lectureCreate3").authenticated()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()

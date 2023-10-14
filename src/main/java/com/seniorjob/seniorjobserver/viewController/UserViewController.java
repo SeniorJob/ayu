@@ -42,8 +42,7 @@ public class UserViewController {
         if (userDetails != null) {
             UserEntity user = userRepository.findByPhoneNumber(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다. : " + userDetails.getUsername()));
-            model.addAttribute("user", user);
-            // 로그인 성공 후 회원 관리 페이지로 이동
+            model.addAttribute("username", user.getName());
             return "redirect:/user/userpage";
         }
         return "main";

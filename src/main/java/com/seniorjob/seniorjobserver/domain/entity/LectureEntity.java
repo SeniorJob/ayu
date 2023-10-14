@@ -93,9 +93,6 @@ public class LectureEntity extends TimeEntity {
     @Column(name = "learning_target")
     private String learningTarget;
 
-    @Column(name = "attendance_requirements")
-    private Integer attendanceRequirements;
-
     @Column(name = "category")
     private String category;
 
@@ -150,17 +147,15 @@ public class LectureEntity extends TimeEntity {
 
     @Builder
     public LectureEntity(Long create_id, UserEntity user, String creator, Integer maxParticipants, Integer currentParticipants, String learningTarget,
-                         Integer attendanceRequirements, String category,
-                         String bank_name, String account_name, String account_number, Integer price, String title, String content,
+                         String category, String bank_name, String account_name, String account_number, Integer price, String title, String content,
                          Integer week, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
                          LocalDateTime createdDate, LocalDateTime recruitEnd_date) {
         this.create_id = create_id;
         this.user = user;
         this.creator = creator;
         this.maxParticipants = maxParticipants;
-        this.currentParticipants = currentParticipants;
+        this.currentParticipants = 0;
         this.learningTarget = learningTarget;
-        this.attendanceRequirements = attendanceRequirements;
         this.category = category;
         this.bank_name = bank_name;
         this.account_name = account_name;
