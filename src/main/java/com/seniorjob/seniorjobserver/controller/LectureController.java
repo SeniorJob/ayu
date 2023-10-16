@@ -69,6 +69,7 @@ public class LectureController {
 		lectureDto.setUser(currentUser); // 현재 로그인된 사용자의 정보를 강좌 DTO에 설정
 		lectureDto.setCreator(currentUser.getName()); // 로그인된 사용자의 이름을 creator로 지정
 
+
 		// 이미지 업로드
 		String imageUrl = storageService.uploadImage(file);
 		lectureDto.setImage_url(imageUrl);

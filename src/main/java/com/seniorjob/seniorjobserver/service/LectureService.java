@@ -101,6 +101,8 @@ public class LectureService {
         LocalDateTime recruitEndDate = lectureDto.getRecruitEnd_date();
         LectureEntity lectureEntity = lectureDto.toEntity(userEntity);
         lectureEntity.setUser(userEntity);
+        lectureDto.setUid(userEntity.getUid());
+        lectureDto.setUserName(userEntity.getName());
 
         // 시작 날짜 조건 확인
         if (startDate.isBefore(currentDate) || startDate.isBefore(recruitEndDate)) {
@@ -351,9 +353,12 @@ public class LectureService {
     }
 
     private LectureDto convertToDto(LectureEntity lectureEntity) {
+        UserEntity userEntity = lectureEntity.getUser();
         return LectureDto.builder()
                 .create_id(lectureEntity.getCreate_id())
                 .creator(lectureEntity.getCreator())
+                .userName(userEntity.getName())
+                .uid(userEntity.getUid())
                 .max_participants(lectureEntity.getMaxParticipants())
                 .current_participants(lectureEntity.getCurrentParticipants())
                 .category(lectureEntity.getCategory())
