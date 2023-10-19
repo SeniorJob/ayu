@@ -13,6 +13,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByPhoneNumber(String phoneNumber);
     Page<UserEntity> findAll(Pageable pageable);
     Optional<UserEntity> findByPhoneNumber(String phoneNumber);
-
 }
 

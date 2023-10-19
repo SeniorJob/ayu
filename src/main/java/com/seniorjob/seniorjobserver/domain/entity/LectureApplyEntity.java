@@ -17,18 +17,15 @@ public class LectureApplyEntity {
     private Long leId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "create_id", referencedColumnName = "create_id")
-    private LectureEntity lecture;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private UserEntity user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "create_id", referencedColumnName = "create_id")
+    private LectureEntity lecture;
+
     @Column(name = "applyReason")
     private String applyReason;
-
-    @Column(name = "recruitment_closed")
-    private Boolean recruitmentClosed;
 
     public enum LectureApplyStatus {
         승인,
@@ -46,6 +43,9 @@ public class LectureApplyEntity {
     public void setLectureApplyStatus(LectureApplyStatus lectureApplyStatus){
         this.lectureApplyStatus = lectureApplyStatus;
     }
+
+    @Column(name = "recruitment_closed")
+    private Boolean recruitmentClosed;
 
     @Column(name = "created_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
     @CreatedDate

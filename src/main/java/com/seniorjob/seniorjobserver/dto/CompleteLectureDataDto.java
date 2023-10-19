@@ -2,10 +2,12 @@ package com.seniorjob.seniorjobserver.dto;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.domain.entity.WeekEntity;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -14,8 +16,8 @@ import java.time.LocalDateTime;
 public class CompleteLectureDataDto {
     // 1단계 데이터
     private Long createId;
-    private UserEntity user;
-    private Long userId;
+    private Long uid;
+    private String name;
     private String creator;
     private Integer maxParticipants;
     private Integer currentParticipants;
@@ -28,7 +30,6 @@ public class CompleteLectureDataDto {
     private String content;
     private Integer week;
     private String learningTarget;
-    private Integer attendanceRequirements;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime startDate;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
@@ -38,9 +39,19 @@ public class CompleteLectureDataDto {
     private String region;
     private String imageUrl;
     private LocalDateTime createdDate;
-    private LectureEntity.LectureStatus status;
 
-    // 2단계 데이터
+    // 2단계 데이터 week
+    private Long week_id;
+    private Long create_id;
+    private String lectureTitle;
+    private Integer week_number;
+    private String week_title;
+    private LocalDateTime createdDateWeek;
+
+    // 2단계 데이터 weekPlan
+
+
+    // 2단계 데이터 attendan
 
 
 }

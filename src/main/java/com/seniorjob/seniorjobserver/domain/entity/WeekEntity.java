@@ -25,6 +25,7 @@ public class WeekEntity extends TimeEntity{
     @ManyToOne
     @JoinColumn(name = "create_id")
     private LectureEntity create_id;
+
     private Integer week_number;
     private String week_title;
 

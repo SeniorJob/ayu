@@ -1,23 +1,23 @@
 package com.seniorjob.seniorjobserver.service;
 
 import com.seniorjob.seniorjobserver.controller.LectureController;
-import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
-import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.domain.entity.*;
 import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
 import com.seniorjob.seniorjobserver.dto.LectureDto;
-import com.seniorjob.seniorjobserver.repository.LectureRepository;
+import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity.LectureStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import javax.transaction.Transactional;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import com.seniorjob.seniorjobserver.repository.UserRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +31,21 @@ import java.util.stream.Collectors;
 public class LectureService {
     private final LectureRepository lectureRepository;
     private final UserRepository userRepository;
+    private final LectureApplyRepository applyRepository;
+    private final WeekRepository weekRepository;
+    private final WeekPlanRepository weekPlanRepository;
+    private final AttendanceRepository attendanceRepository;
     private static final Logger log = LoggerFactory.getLogger(LectureController.class);
 
-    public LectureService(LectureRepository lectureRepository, UserRepository userRepository) {
+    public LectureService(LectureRepository lectureRepository, UserRepository userRepository,
+                          LectureApplyRepository applyRepository, WeekRepository weekRepository,
+                          WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository) {
         this.lectureRepository = lectureRepository;
         this.userRepository = userRepository;
+        this.applyRepository = applyRepository;
+        this.weekRepository = weekRepository;
+        this.weekPlanRepository = weekPlanRepository;
+        this.attendanceRepository = attendanceRepository;
     }
 
     public List<LectureDto> getAllLectures() {
@@ -135,12 +145,11 @@ public class LectureService {
     public void createLecture(CompleteLectureDataDto completeLectureDataDto) {
         // 강좌 정보 유효성 검사
         validateLectureData(completeLectureDataDto);
-        UserEntity userEntity = userRepository.findById(completeLectureDataDto.getUserId())
+        UserEntity userEntity = userRepository.findById(completeLectureDataDto.getUid())
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
         // 1단계 강좌 정보 저장
         LectureEntity lectureEntity = LectureEntity.builder()
-                .user(userEntity)
                 .creator(completeLectureDataDto.getCreator())
                 .category(completeLectureDataDto.getCategory())
                 .image_url(completeLectureDataDto.getImageUrl())
@@ -182,15 +191,13 @@ public class LectureService {
         }
 
     }
-
-    // 로그인된 유저의 강좌수정
+    // 로그인된 유저의 강좌개설 2단계에서 "이전단계" 강좌개설 1단계 정보를 불러와 수정 Service
+    // 로그인된 유저의 개설된 강좌에서 강좌개설 1단계 정보를 불러와 수정API Service
     public LectureDto updateLecture(Long create_id, LectureDto lectureDto) {
         LectureEntity existingLecture = lectureRepository.findById(create_id)
                 .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + create_id));
 
-        existingLecture.setCreator(lectureDto.getCreator());
         existingLecture.setMaxParticipants(lectureDto.getMax_participants());
-        existingLecture.setCurrentParticipants(lectureDto.getCurrent_participants());
         existingLecture.setCategory(lectureDto.getCategory());
         existingLecture.setBank_name(lectureDto.getBank_name());
         existingLecture.setAccount_name(lectureDto.getAccount_name());
@@ -198,14 +205,11 @@ public class LectureService {
         existingLecture.setPrice(lectureDto.getPrice());
         existingLecture.setTitle(lectureDto.getTitle());
         existingLecture.setContent(lectureDto.getContent());
-        //existingLecture.setCycle(lectureDto.getCycle());
         existingLecture.setWeek(lectureDto.getWeek());
         existingLecture.setLearningTarget(lectureDto.getLearning_target());
-        //existingLecture.setAttendanceRequirements(lectureDto.getAttendance_requirements());
-        //existingLecture.setCount(lectureDto.getCount());
+        existingLecture.setRecruitEnd_date(lectureDto.getRecruitEnd_date());
         existingLecture.setStart_date(lectureDto.getStart_date());
         existingLecture.setEnd_date(lectureDto.getEnd_date());
-        existingLecture.setRecruitEnd_date(lectureDto.getRecruitEnd_date());
         existingLecture.setRegion(lectureDto.getRegion());
         existingLecture.setImage_url(lectureDto.getImage_url());
 
@@ -214,7 +218,18 @@ public class LectureService {
     }
 
     // 강좌삭제
-    public void deleteLecture(Long create_id) {
+    @Transactional
+    public void deleteLectureCreatedByUser(Long create_id, String username) {
+        UserEntity user = userRepository.findByPhoneNumber(username)
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        LectureEntity lecture = lectureRepository.findById(create_id)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+
+        if (!lecture.getUser().getUid().equals(user.getUid())) {
+            throw new RuntimeException("해당 강좌를 삭제할 권한이 없습니다.");
+        }
+
         lectureRepository.deleteById(create_id);
     }
 
@@ -352,37 +367,6 @@ public class LectureService {
         return lectureRepository.findAll(pageable);
     }
 
-    private LectureDto convertToDto(LectureEntity lectureEntity) {
-        UserEntity userEntity = lectureEntity.getUser();
-        return LectureDto.builder()
-                .create_id(lectureEntity.getCreate_id())
-                .creator(lectureEntity.getCreator())
-                .userName(userEntity.getName())
-                .uid(userEntity.getUid())
-                .max_participants(lectureEntity.getMaxParticipants())
-                .current_participants(lectureEntity.getCurrentParticipants())
-                .category(lectureEntity.getCategory())
-                .bank_name(lectureEntity.getBank_name())
-                .account_name(lectureEntity.getAccount_name())
-                .account_number(lectureEntity.getAccount_number())
-                .price(lectureEntity.getPrice())
-                .title(lectureEntity.getTitle())
-                .content(lectureEntity.getContent())
-                //.cycle(lectureEntity.getCycle())
-                .week(lectureEntity.getWeek())
-                .learning_target(lectureEntity.getLearningTarget())
-                //.attendance_requirements(lectureEntity.getAttendanceRequirements())
-                //.count(lectureEntity.getCount())
-                .start_date(lectureEntity.getStart_date())
-                .end_date(lectureEntity.getEnd_date())
-                .region(lectureEntity.getRegion())
-                .status(lectureEntity.getStatus())
-                .image_url(lectureEntity.getImage_url())
-                .createdDate(lectureEntity.getCreatedDate())
-                .recruitEnd_date(lectureEntity.getRecruitEnd_date())
-                .build();
-    }
-
     // 강좌상태
     // 강좌 모집 마감 기능
     public void closeRecruitment(Long lectureId) {
@@ -408,5 +392,33 @@ public class LectureService {
         return lectureRepository.findById(lectureId)
                 .map(lecture -> Optional.ofNullable(lecture.getRecruitmentClosed()).orElse(false))
                 .orElse(false);
+    }
+
+    private LectureDto convertToDto(LectureEntity lectureEntity) {
+        UserEntity userEntity = lectureEntity.getUser();
+        return LectureDto.builder()
+                .create_id(lectureEntity.getCreate_id())
+                .uid(userEntity.getUid())
+                .userName(userEntity.getName())
+                .creator(lectureEntity.getCreator())
+                .category(lectureEntity.getCategory())
+                .image_url(lectureEntity.getImage_url())
+                .title(lectureEntity.getTitle())
+                .content(lectureEntity.getContent())
+                .learning_target(lectureEntity.getLearningTarget())
+                .week(lectureEntity.getWeek())
+                .recruitEnd_date(lectureEntity.getRecruitEnd_date())
+                .start_date(lectureEntity.getStart_date())
+                .end_date(lectureEntity.getEnd_date())
+                .max_participants(lectureEntity.getMaxParticipants())
+                .current_participants(lectureEntity.getCurrentParticipants())
+                .region(lectureEntity.getRegion())
+                .price(lectureEntity.getPrice())
+                .bank_name(lectureEntity.getBank_name())
+                .account_name(lectureEntity.getAccount_name())
+                .account_number(lectureEntity.getAccount_number())
+                .status(lectureEntity.getStatus())
+                .createdDate(lectureEntity.getCreatedDate())
+                .build();
     }
 }
