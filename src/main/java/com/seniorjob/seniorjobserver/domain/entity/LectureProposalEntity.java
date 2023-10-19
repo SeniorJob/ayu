@@ -21,26 +21,23 @@ public class LectureProposalEntity {
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private UserEntity user;
 
+    @Column(name = "category")
+    private String category;
+
     @Column(name = "title")
     private String title;
 
-    @Column(name = "category")
-    private String category;
+    @Column(name = "content")
+    private String content;
+
+    @Column(name = "region")
+    private String region;
 
     @Column(name = "start_date", columnDefinition = "datetime")
     private LocalDateTime start_date;
 
     @Column(name = "end_date", columnDefinition = "datetime")
     private LocalDateTime end_date;
-
-    @Column(name = "region")
-    private String region;
-
-    @Column(name = "price")
-    private int price;
-
-    @Column(name = "content")
-    private String content;
 
     @Column(name = "current_participants")
     private Integer current_participants;
@@ -57,8 +54,9 @@ public class LectureProposalEntity {
     private LocalDateTime created_date;
 
     @Builder
-    public LectureProposalEntity(Long proposal_id, UserEntity user, String title, String category, String region, LocalDateTime start_date, LocalDateTime end_date,
-                                 Integer price, String content, Integer currentParticipants, LocalDateTime created_date) {
+    public LectureProposalEntity(Long proposal_id, UserEntity user, String title, String category,
+                                 String region, LocalDateTime start_date, LocalDateTime end_date,
+                                 String content, Integer currentParticipants, LocalDateTime created_date) {
         this.proposal_id = proposal_id;
         this.user = user;
         this.title = title;
@@ -66,7 +64,6 @@ public class LectureProposalEntity {
         this.start_date = start_date;
         this.end_date = end_date;
         this.region = region;
-        this.price = price;
         this.content = content;
         this.current_participants = currentParticipants;
         this.created_date = created_date;

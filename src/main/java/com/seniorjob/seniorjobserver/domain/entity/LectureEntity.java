@@ -5,6 +5,8 @@ import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -20,13 +22,6 @@ public class LectureEntity extends TimeEntity {
         진행상태,
         철회상태,
         완료상태
-    }
-
-    private Boolean recruitmentClosed;
-
-    // 강좌의 모집 마감 여부를 반환하는 메서드
-    public boolean isRecruitmentClosed() {
-        return Boolean.TRUE.equals(this.recruitmentClosed);
     }
 
     public void updateStatus() {
@@ -71,11 +66,12 @@ public class LectureEntity extends TimeEntity {
 
         throw new IllegalStateException("강좌개설오류");
     }
-
-
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long create_id;
+
+    @OneToMany(mappedBy = "create_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AttendanceEntity> attendances = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "uid", referencedColumnName = "uid")
@@ -84,17 +80,44 @@ public class LectureEntity extends TimeEntity {
     @Column(name = "creator", nullable = false)
     private String creator;
 
+    @Column(name = "category")
+    private String category;
+
+    @Column(name = "image_url")
+    private String image_url;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "learning_target")
+    private String learningTarget;
+
+    @Column(name = "week")
+    private Integer week;
+
+    @Column(name = "recruitEnd_date", columnDefinition = "datetime")
+    private LocalDateTime recruitEnd_date;
+
+    @Column(name = "start_date", columnDefinition = "datetime")
+    private LocalDateTime start_date;
+
+    @Column(name = "end_date", columnDefinition = "datetime")
+    private LocalDateTime end_date;
+
     @Column(name = "max_participants", nullable = false)
     private Integer maxParticipants;
 
     @Column(name = "current_participants")
     private Integer currentParticipants;
 
-    @Column(name = "learning_target")
-    private String learningTarget;
+    @Column(name = "region")
+    private String region;
 
-    @Column(name = "category")
-    private String category;
+    @Column(name = "price")
+    private Integer price;
 
     @Column(name = "bank_name")
     private String bank_name;
@@ -105,74 +128,48 @@ public class LectureEntity extends TimeEntity {
     @Column(name = "account_number")
     private String account_number;
 
-    @Column(name = "price")
-    private Integer price;
-
-    @Column(name = "title")
-    private String title;
-
-    @Column(name = "content", columnDefinition = "TEXT")
-    private String content;
-
-//    @Column(name = "cycle")
-//    private String cycle;
-    @Column(name = "week")
-    private Integer week;
-
-//    @Column(name = "count")
-//    private Integer count;
-
-    @Column(name = "start_date", columnDefinition = "datetime")
-    private LocalDateTime start_date;
-
-    @Column(name = "end_date", columnDefinition = "datetime")
-    private LocalDateTime end_date;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status",nullable = false)
     private LectureStatus status = LectureStatus.신청가능상태;
 
-    @Column(name = "region")
-    private String region;
+    private Boolean recruitmentClosed;
 
-    @Column(name = "image_url")
-    private String image_url;
+    // 강좌의 모집 마감 여부를 반환하는 메서드
+    public boolean isRecruitmentClosed() {
+        return Boolean.TRUE.equals(this.recruitmentClosed);
+    }
 
     @Column(name = "created_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
     @CreatedDate
     private LocalDateTime createdDate;
 
-    @Column(name = "recruitEnd_date", columnDefinition = "datetime")
-    private LocalDateTime recruitEnd_date;
-
     @Builder
-    public LectureEntity(Long create_id, UserEntity user, String creator, Integer maxParticipants, Integer currentParticipants, String learningTarget,
-                         String category, String bank_name, String account_name, String account_number, Integer price, String title, String content,
-                         Integer week, LocalDateTime start_date, LocalDateTime end_date, String region, String image_url,
-                         LocalDateTime createdDate, LocalDateTime recruitEnd_date) {
+    public LectureEntity(Long create_id, String creator, String image_url, String category,
+                         String title, String content, String learningTarget, Integer week,
+                         LocalDateTime recruitEnd_date, LocalDateTime start_date, LocalDateTime end_date,
+                         Integer maxParticipants, Integer currentParticipants, Integer price,
+                         String region, String bank_name, String account_name, String account_number,
+                         LocalDateTime createdDate) {
         this.create_id = create_id;
-        this.user = user;
         this.creator = creator;
+        this.category = category;
+        this.image_url = image_url;
+        this.title = title;
+        this.content = content;
+        this.learningTarget = learningTarget;
+        this.week = week;
+        this.recruitEnd_date = recruitEnd_date;
+        this.start_date = start_date;
+        this.end_date = end_date;
         this.maxParticipants = maxParticipants;
         this.currentParticipants = 0;
-        this.learningTarget = learningTarget;
-        this.category = category;
+        this.region = region;
+        this.price = price;
         this.bank_name = bank_name;
         this.account_name = account_name;
         this.account_number = account_number;
-        this.price = price;
-        this.title = title;
-        this.content = content;
-        //this.cycle = cycle;
-        this.week = week;
-        //this.count = count;
-        this.start_date = start_date;
-        this.end_date = end_date;
-        this.region = region;
         this.status = LectureStatus.신청가능상태;
-        this.image_url = image_url;
         this.createdDate = createdDate;
-        this.recruitEnd_date = recruitEnd_date;
     }
 
     public void increaseCurrentParticipants() {

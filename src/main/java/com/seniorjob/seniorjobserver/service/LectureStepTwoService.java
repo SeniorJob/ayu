@@ -1,13 +1,12 @@
 package com.seniorjob.seniorjobserver.service;
 
-import com.seniorjob.seniorjobserver.domain.entity.AttendanceEntity;
-import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
-import com.seniorjob.seniorjobserver.domain.entity.WeekEntity;
-import com.seniorjob.seniorjobserver.domain.entity.WeekPlanEntity;
+import com.seniorjob.seniorjobserver.domain.entity.*;
 import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.repository.CompletionLectureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -63,23 +62,27 @@ public class LectureStepTwoService {
     }
 
     // 주차별 제목밑에 해당주차의 상세내용 Service
-    public ExtendWeekPlanDto addWeekPlan(Long weekId, String detail) {
+    public ExtendWeekPlanDto addWeekPlan(Long lectureId, Long weekId, String detail) {
         if(detail == null || detail.trim().isEmpty()){
             throw new IllegalArgumentException("상세내용을 입력해주세요! 입력하지 않으시면 삭제해주세요!");
         }
-        WeekEntity week = weekRepository.findById(weekId)
+
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+
+        WeekEntity week = weekRepository.findByIdAndCreateId(weekId, lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("강좌개설2단계에서 해당 주차를 찾을 수 없습니다."));
 
         int nextDetailNumber = week.getPlans().size() + 1;
 
         WeekPlanEntity weekPlan = WeekPlanEntity.builder()
                 .week(week)
+                .create_id(lecture)
                 .detail_number(nextDetailNumber)
                 .detail(detail)
                 .build();
 
         week.getPlans().add(weekPlan);
-
         weekRepository.save(week);
 
         List<WeekPlanDto> details = week.getPlans().stream()
@@ -88,9 +91,9 @@ public class LectureStepTwoService {
 
         return new ExtendWeekPlanDto(
                 week.getWeek_id(),
+                lecture.getCreate_id(),
                 week.getWeek_title(),
-                details
-        );
+                details);
     }
 
     // 강좌개설 2단계에서 수료 출석 조건 설정 Service
@@ -128,22 +131,121 @@ public class LectureStepTwoService {
                 .collect(Collectors.toList());
 
         // 강좌개설2단계 : 출석 조건 정보 가져오기
-
+        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
+                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
+        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
 
         // 최종적으로 모든 정보를 하나의 DTO에 담아 반환
-        return new CreateLectureFullInfoDto(lectureDto, weekDtos, weekPlanDtos);
+        return new CreateLectureFullInfoDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
     }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "이전단계"로 돌아가 수정하는 API Service
+    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "이전단계"로 돌아가 수정하는 로직
 
+    // 1. weekTitle수정 Service
+    public WeekDto updateWeekTitle(Long lectureId, Long weekId, String title, UserDetails userDetails){
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
+
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        if (!lecture.getUser().getUid().equals(currentUser.getUid())) {
+            throw new RuntimeException("해당 강좌를 수정할 권한이 없습니다.");
+        }
+
+        if (title == null || title.trim().isEmpty()){
+            throw new IllegalArgumentException("제목을 입력해주세요! 입력하지 않으시면 삭제해주세요!");
+        }
+
+        WeekEntity weekEntity = weekRepository.findByIdAndCreateId(weekId, lectureId)
+                .orElseThrow(()-> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
+        weekEntity.setWeek_title(title);
+        weekRepository.save(weekEntity);
+        return new WeekDto(weekEntity);
+    }
+
+    // 1. weekTitle삭제API Service
+    public void deleteWeek(Long lectureId, Long weekId, UserDetails userDetails){
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
+
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        if (!lecture.getUser().getUid().equals(currentUser.getUid())) {
+            throw new RuntimeException("해당 강좌를 삭제할 권한이 없습니다.");
+        }
+
+        WeekEntity weekEntity = weekRepository.findByIdAndCreateId(weekId, lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
+        weekRepository.delete(weekEntity);
+    }
+
+    // 2. weekPlan수정 Service
+    public WeekPlanDto updateWeekPlan(Long lectureId, Long weekId, Long planId, String detail) {
+        if (detail == null || detail.trim().isEmpty()) {
+            throw new IllegalArgumentException("상세내용을 입력해주세요! 입력하지 않으시면 삭제해주세요!");
+        }
+
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+
+        WeekEntity week = weekRepository.findByIdAndCreateId(weekId, lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
+
+        WeekPlanEntity weekPlan = weekPlanRepository.findPlanByIdAndWeek(planId, week)
+                .orElseThrow(() -> new ResourceNotFoundException("강좌개설2단계에서 해당 상세주차별 내용을 찾을 수 없습니다."));
+
+        weekPlan.setDetail(detail);
+        weekPlanRepository.save(weekPlan);
+
+        return new WeekPlanDto(weekPlan);
+    }
+
+    // 2. weekPlan삭제 Service
+    public void deleteWeekPlan(Long lectureId, Long weekId, Long planId){
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+
+        WeekEntity week = weekRepository.findByIdAndCreateId(weekId, lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
+
+        WeekPlanEntity weekPlan = weekPlanRepository.findPlanByIdAndWeek(planId, week)
+                .orElseThrow(() -> new ResourceNotFoundException("강좌개설2단계에서 해당 상세주차별 내용을 찾을 수 없습니다."));
+
+        weekPlanRepository.deleteById(planId);
+    }
+
+    // 3. attendance수정 Service 출석조건은 수정만가능하다.
+    public AttendanceDto updateAttendanceCondition(Long lectureId, int requiredAttendance) {
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+
+        if (requiredAttendance <= 0 || requiredAttendance >= 5) {
+            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 5회 이하로 설정해 주세요");
+        }
+
+        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
+                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
+
+        attendanceEntity.setRequiredAttendance(requiredAttendance);
+        attendanceRepository.save(attendanceEntity);
+
+        return new AttendanceDto(attendanceEntity);
+    }
 
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "강좌개설" 클릭시 강좌가 최종 개설되는 API Service
 
 
     private LectureDto convertToDto(LectureEntity lecture) {
+        UserEntity userEntity = lecture.getUser();
         return LectureDto.builder()
                 .create_id(lecture.getCreate_id())
+                .userName(userEntity.getName())
+                .uid(userEntity.getUid())
                 .creator(lecture.getCreator())
+                .userName(lecture.getUser().getName())
+                .uid(lecture.getUser().getUid())
                 .max_participants(lecture.getMaxParticipants())
                 .current_participants(lecture.getCurrentParticipants())
                 .category(lecture.getCategory())
@@ -153,15 +255,11 @@ public class LectureStepTwoService {
                 .price(lecture.getPrice())
                 .title(lecture.getTitle())
                 .content(lecture.getContent())
-                //.cycle(lectureEntity.getCycle())
                 .week(lecture.getWeek())
                 .learning_target(lecture.getLearningTarget())
-                //.attendance_requirements(lectureEntity.getAttendanceRequirements())
-                //.count(lectureEntity.getCount())
                 .start_date(lecture.getStart_date())
                 .end_date(lecture.getEnd_date())
                 .region(lecture.getRegion())
-                .status(lecture.getStatus())
                 .image_url(lecture.getImage_url())
                 .createdDate(lecture.getCreatedDate())
                 .recruitEnd_date(lecture.getRecruitEnd_date())

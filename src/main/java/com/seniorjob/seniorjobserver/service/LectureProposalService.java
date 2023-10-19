@@ -78,7 +78,6 @@ public class LectureProposalService {
                 .currentParticipants(lectureProposalEntity.getCurrent_participants())
                 .category(lectureProposalEntity.getCategory())
                 .region(lectureProposalEntity.getRegion())
-                .price(lectureProposalEntity.getPrice())
                 .title(lectureProposalEntity.getTitle())
                 .content(lectureProposalEntity.getContent())
                 .startDate(lectureProposalEntity.getStart_date())
@@ -138,7 +137,6 @@ public class LectureProposalService {
         lectureProposal.setStart_date(lectureProposalDto.getStartDate());
         lectureProposal.setEnd_date(lectureProposalDto.getEndDate());
         lectureProposal.setRegion(lectureProposalDto.getRegion());
-        lectureProposal.setPrice(lectureProposalDto.getPrice());
         lectureProposal.setContent(lectureProposalDto.getContent());
     }
 

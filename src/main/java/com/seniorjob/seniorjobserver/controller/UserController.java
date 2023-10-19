@@ -59,7 +59,7 @@ public class UserController {
         this.lectureProposalApplyRepository = lectureProposalApplyRepository;
     }
 
-    // 구직자/사업주 회원가입API with 암호화 세션//
+    // 회원가입API with 암호화 세션//
     @PostMapping("/join")
     public ResponseEntity<?> registerUser(
             @RequestParam("userDto") String userDtoJson,

@@ -18,6 +18,10 @@ public class WeekPlanEntity extends TimeEntity{
     private Long plan_id;
 
     @ManyToOne
+    @JoinColumn(name = "create_id")
+    private LectureEntity create_id;
+
+    @ManyToOne
     @JoinColumn(name = "week_id")
     private WeekEntity week;
 
@@ -31,10 +35,11 @@ public class WeekPlanEntity extends TimeEntity{
     private LocalDateTime createdDate;
 
     @Builder
-    public WeekPlanEntity(Long plan_id, WeekEntity week, Integer detail_number, String detail){
+    public WeekPlanEntity(Long plan_id, WeekEntity week, Integer detail_number, String detail, LectureEntity create_id){
         this.plan_id = plan_id;
         this.week = week;
         this.detail_number = detail_number;
         this.detail = detail;
+        this.create_id = create_id;
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class LectureController {
 		this.lectureRepository = lectureRepository;
 	}
 
-	// 강좌개설API 1단계
+	// 강좌개설1단계 API
 	// POST /api/lectures
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping
@@ -66,7 +67,6 @@ public class LectureController {
 		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
 				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-		lectureDto.setUser(currentUser); // 현재 로그인된 사용자의 정보를 강좌 DTO에 설정
 		lectureDto.setCreator(currentUser.getName()); // 로그인된 사용자의 이름을 creator로 지정
 
 		// 이미지 업로드
@@ -75,10 +75,10 @@ public class LectureController {
 
 		LectureDto createdLecture = lectureService.createLecture(lectureDto, currentUser);
 
-		if (createdLecture.getUser() != null) {
-			log.info("User assigned to createdLecture DTO: {}", createdLecture.getUser().toString());
+		if (createdLecture.getUid() != null) {
+			log.info("DTO에 할당된 사용자: {}", createdLecture.getUid().toString());
 		} else {
-			log.warn("User is not assigned to createdLecture DTO");
+			log.warn("DTO에 유저가 할당되지 않았습니다.");
 		}
 
 		return ResponseEntity.ok(createdLecture);
@@ -92,7 +92,8 @@ public class LectureController {
 			UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
 					.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-			completeData.setUserId(currentUser.getUid());
+			//completeData.setUId(currentUser.getUid());
+			completeData.setUid(currentUser.getUid());
 
 			lectureService.createLecture(completeData);
 			return ResponseEntity.ok("강좌가 성공적으로 개설되었습니다.");
@@ -107,7 +108,8 @@ public class LectureController {
 		}
 	}
 
-	// 로그인된 유저의 개설된강좌수정API
+	// 로그인된 유저의 강좌개설 2단계에서 "이전단계" 강좌개설 1단계 정보를 불러와 수정API Controller
+	// 로그인된 유저의 개설된 강좌에서 강좌개설 1단계 정보를 불러와 수정API Controller
 	// PUT /api/lectures/{id}
 	@PutMapping("/{id}")
 	public ResponseEntity<LectureDto> updateLecture(
@@ -167,23 +169,13 @@ public class LectureController {
 	}
 
 	// 개설된강좌삭제API
-	// Delete /api/lectures/{id}
-	@DeleteMapping("/{id}")
-	public ResponseEntity<String> deleteLecture(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails) {
-
-		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-						.orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-		LectureEntity lectureEntity = lectureRepository.findById(id)
-						.orElseThrow(()-> new RuntimeException("강좌 아이디를 찾지 못함 : " + id));
-
-		if(!lectureEntity.getUser().equals(currentUser)){
-			throw new RuntimeException("해당 강좌를 삭제할 권한이 없습니다.");
-		}
-
-		lectureService.deleteLecture(id);
-		String successMessage = currentUser.getName() + "님의 " + id + "번 강좌가 정상적으로 삭제되었습니다!";
-		return ResponseEntity.ok(successMessage);
+	@PreAuthorize("isAuthenticated()")
+	@DeleteMapping("/{create_id}")
+	public ResponseEntity<?> deleteMyLecture(
+			@PathVariable Long create_id,
+			@AuthenticationPrincipal UserDetails userDetails) {
+		lectureService.deleteLectureCreatedByUser(create_id, userDetails.getUsername());
+		return ResponseEntity.ok().build();
 	}
 
 	// 개설된강좌상세정보API

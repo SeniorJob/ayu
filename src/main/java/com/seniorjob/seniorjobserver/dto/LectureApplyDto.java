@@ -37,7 +37,7 @@ public class LectureApplyDto {
     private LectureEntity.LectureStatus lectureStatus;
 
     @JsonIgnore
-    private LectureEntity lectureId; // 이 필드에서 lectureId를 가져올 수 있습니다.
+    private LectureEntity lectureId;
 
     public Long getLectureId() {
         if (this.lecture != null) {

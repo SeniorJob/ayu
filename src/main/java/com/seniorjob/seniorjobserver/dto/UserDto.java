@@ -15,36 +15,30 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class UserDto {
     private Long uid;
+    private String name;
+    private String phoneNumber;
     private String encryptionCode;
     private String confirmPassword; // 비밀번호확인용 임시필드
-    private String name;
+    private String job;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
-    private UserEntity.Gender gender;
-    private String phoneNumber;
-    private UserEntity.UserType userType;
-    private UserEntity.LoginType loginType;
-    private String job;
+    private String category;
     private String region;
     private String imgKey;
-    private String category;
     private LocalDateTime updateDate;
     private LocalDateTime createDate;
 
     public UserEntity toEntity(){
         UserEntity userEntity = UserEntity.builder()
                 .uid(uid)
-                .encryptionCode(encryptionCode)
                 .name(name)
-                .dateOfBirth(dateOfBirth)
-                .gender(gender)
-                .loginType(loginType)
-                .userType(userType)
                 .phoneNumber(phoneNumber)
+                .encryptionCode(encryptionCode)
                 .job(job)
+                .dateOfBirth(dateOfBirth)
+                .category(category)
                 .region(region)
                 .imgKey(imgKey)
-                .category(category)
                 .updateDate(updateDate)
                 .createDate(createDate)
                 .build();
@@ -52,21 +46,18 @@ public class UserDto {
     }
 
     @Builder
-    public UserDto(Long uid, String encryptionCode, String name, LocalDate dateOfBirth, UserEntity.Gender gender, String phoneNumber,
-                      UserEntity.LoginType loginType, UserEntity.UserType userType, String job, String region, String imgKey, String category,
-                      LocalDateTime updateDate, LocalDateTime createDate) {
+    public UserDto(Long uid, String name, String phoneNumber, String encryptionCode, String job,
+                   LocalDate dateOfBirth, String category, String region, String imgKey,
+                   LocalDateTime updateDate, LocalDateTime createDate) {
         this.uid = uid;
-        this.encryptionCode = encryptionCode;
         this.name = name;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.loginType = loginType;
-        this.userType = userType;
         this.phoneNumber = phoneNumber;
+        this.encryptionCode = encryptionCode;
         this.job = job;
+        this.dateOfBirth = dateOfBirth;
+        this.category = category;
         this.region = region;
         this.imgKey = imgKey;
-        this.category = category;
         this.updateDate = updateDate;
         this.createDate = createDate;
     }
