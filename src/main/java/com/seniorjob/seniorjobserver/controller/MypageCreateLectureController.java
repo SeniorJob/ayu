@@ -11,18 +11,20 @@ import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
@@ -116,5 +118,83 @@ public class MypageCreateLectureController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // 필터링
+    // api/lectures/filter == 모든강좌조회
+    // api/lectures/filter?title="강좌제목" == 제목만으로 검색
+    // api/lectures/filter?title="강좌제목"&filter=최신순
+    @GetMapping("/filter")
+    public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(value = "descending", defaultValue = "false") boolean descending,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        // 사용자가 개설한 전체 강좌 가져오기
+        List<LectureDto> myLectureAll = lectureService.getMyLectureAll(currentUser.getUid());
+
+        // 필터링: 제목 검색
+        if (title != null && !title.isEmpty()) {
+            myLectureAll = lectureService.searchLecturesByTitle(title);
+        }
+
+        // 필터링: 조건에 따라 lectureList 필터링
+        if (filter != null && !filter.isEmpty()) {
+            myLectureAll = lectureService.filterLectures(myLectureAll, filter, descending);
+        }
+
+        // 필터링: 지역 검색
+        if (region != null && !region.isEmpty()) {
+            myLectureAll = lectureService.filterRegion(myLectureAll, region);
+        }
+
+        // 필터링: 모집중, 개설대기중, 진행중 상태에 따라 필터링
+        if (status != null && !status.isEmpty()) {
+            LectureEntity.LectureStatus lectureStatus;
+
+            switch (status) {
+                case "모집중":
+                    lectureStatus = LectureEntity.LectureStatus.신청가능상태;
+                    break;
+                case "개설대기중":
+                    lectureStatus = LectureEntity.LectureStatus.개설대기상태;
+                    break;
+                case "진행중":
+                    lectureStatus = LectureEntity.LectureStatus.진행상태;
+                    break;
+                case "완료강좌":
+                    lectureStatus = LectureEntity.LectureStatus.완료상태;
+                default:
+                    throw new IllegalArgumentException("잘못된 상태 키워드입니다.");
+            }
+
+            myLectureAll = lectureService.filterStatus(myLectureAll, lectureStatus);
+        }
+
+        // 필터링: 카테고리명
+        if (category != null && !category.isEmpty()) {
+            myLectureAll = lectureService.filterCategory(myLectureAll, category);
+        }
+
+        // 검색결과에 해당하는 강좌가 없을 경우
+        if (myLectureAll.isEmpty()) {
+            throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.");
+        }
+
+        // 페이징
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), myLectureAll.size());
+        Page<LectureDto> pagedLectureDto = new PageImpl<>(myLectureAll.subList(start, end), pageable, myLectureAll.size());
+        return ResponseEntity.ok(pagedLectureDto);
+    }
+
 
 }
