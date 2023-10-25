@@ -234,6 +234,7 @@ public class LectureStepTwoService {
         return new AttendanceDto(attendanceEntity);
     }
 
+
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "강좌개설" 클릭시 강좌가 최종 개설되는 API Service
 
 
