@@ -2,10 +2,11 @@ package com.seniorjob.seniorjobserver.service;
 
 import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.*;
-import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
-import com.seniorjob.seniorjobserver.dto.LectureDto;
+import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity.LectureStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import javax.transaction.Transactional;
 import java.time.ZoneId;
@@ -17,8 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,21 +32,29 @@ import java.util.stream.Collectors;
 public class LectureService {
     private final LectureRepository lectureRepository;
     private final UserRepository userRepository;
-    private final LectureApplyRepository applyRepository;
+    private final LectureApplyRepository lectureApplyRepository;
+    private final LectureProposalRepository lectureProposalRepository;
+    private final LectureProposalApplyRepository lectureProposalApplyRepository;
     private final WeekRepository weekRepository;
     private final WeekPlanRepository weekPlanRepository;
     private final AttendanceRepository attendanceRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(LectureController.class);
 
     public LectureService(LectureRepository lectureRepository, UserRepository userRepository,
-                          LectureApplyRepository applyRepository, WeekRepository weekRepository,
-                          WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository) {
+                          WeekRepository weekRepository,
+                          WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository,
+                          LectureApplyRepository lectureApplyRepository,
+                          LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository) {
         this.lectureRepository = lectureRepository;
         this.userRepository = userRepository;
-        this.applyRepository = applyRepository;
         this.weekRepository = weekRepository;
         this.weekPlanRepository = weekPlanRepository;
         this.attendanceRepository = attendanceRepository;
+        this.lectureApplyRepository = lectureApplyRepository;
+        this.lectureProposalRepository = lectureProposalRepository;
+        this.lectureProposalApplyRepository = lectureProposalApplyRepository;
     }
 
     public List<LectureDto> getAllLectures() {
@@ -103,7 +112,7 @@ public class LectureService {
         log.info("Update LectureStatus");
     }
 
-    // 강좌개설
+    // 강좌개설1단계 service
     public LectureDto createLecture(LectureDto lectureDto, UserEntity userEntity) {
         LocalDateTime currentDate = LocalDateTime.now();
         LocalDateTime startDate = lectureDto.getStart_date();
@@ -113,6 +122,7 @@ public class LectureService {
         lectureEntity.setUser(userEntity);
         lectureDto.setUid(userEntity.getUid());
         lectureDto.setUserName(userEntity.getName());
+        validateRequiredFields(lectureDto);
 
         // 시작 날짜 조건 확인
         if (startDate.isBefore(currentDate) || startDate.isBefore(recruitEndDate)) {
@@ -175,7 +185,35 @@ public class LectureService {
         log.info("강좌가 성공적으로 생성되었습니다: {}", lectureEntity.getCreate_id());
     }
 
-    // 강좌 데이터 유효성 검사 메소드
+    // 강좌개설1단계 데이터 유효성 검사 메소드
+    private void validateRequiredFields(LectureDto lectureDto) {
+        if(lectureDto.getTitle() == null || lectureDto.getTitle().trim().isEmpty()){
+            throw new IllegalArgumentException("제목을 입력해주세요!");
+        }
+        if(lectureDto.getContent() == null || lectureDto.getContent().trim().isEmpty()){
+            throw new IllegalArgumentException("강좌소개를 입력해주세요!");
+        }
+        if(lectureDto.getLearning_target() == null || lectureDto.getLearning_target().trim().isEmpty()){
+            throw new IllegalArgumentException("학습대상을 입력해주세요!");
+        }
+        if(lectureDto.getWeek() == null || lectureDto.getWeek() <= 0){
+            throw new IllegalArgumentException("주 횟수를 입력해주세요! 그리고 주 횟수는 양수여야 합니다!");
+        }
+        if(lectureDto.getMax_participants() == null || lectureDto.getMax_participants() <= 0){
+            throw new IllegalArgumentException("참가자수를 입력해주세요! 그리고 참가자수는 양수여야 합니다!");
+        }
+        if(lectureDto.getPrice() == null || lectureDto.getPrice() <= 0){
+            throw new IllegalArgumentException("가격을 입력해주세요! 그리고 가격은 양수여야 합니다!");
+        }
+        if(lectureDto.getAccount_name() == null || lectureDto.getAccount_name().trim().isEmpty()){
+            throw new IllegalArgumentException("계좌주를 입력해주세요!");
+        }
+        if(lectureDto.getAccount_number() == null || lectureDto.getAccount_number().trim().isEmpty()){
+            throw new IllegalArgumentException("계좌번호를 입력해주세요!");
+        }
+    }
+
+    // 강좌1단계 수정 데이터 유효성 검사 메소드
     private void validateLectureData(CompleteLectureDataDto data) {
         if (data.getCategory() == null || data.getCategory().trim().isEmpty()) {
             throw new IllegalArgumentException("카테고리를 선택해주세요!");
@@ -189,28 +227,28 @@ public class LectureService {
         if (data.getLearningTarget() == null || data.getLearningTarget().trim().isEmpty()) {
             throw new IllegalArgumentException("학습대상을 입력해주세요!");
         }
-
     }
+
     // 로그인된 유저의 강좌개설 2단계에서 "이전단계" 강좌개설 1단계 정보를 불러와 수정 Service
     // 로그인된 유저의 개설된 강좌에서 강좌개설 1단계 정보를 불러와 수정API Service
     public LectureDto updateLecture(Long create_id, LectureDto lectureDto) {
         LectureEntity existingLecture = lectureRepository.findById(create_id)
                 .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + create_id));
 
-        existingLecture.setMaxParticipants(lectureDto.getMax_participants());
         existingLecture.setCategory(lectureDto.getCategory());
-        existingLecture.setBank_name(lectureDto.getBank_name());
-        existingLecture.setAccount_name(lectureDto.getAccount_name());
-        existingLecture.setAccount_number(lectureDto.getAccount_number());
-        existingLecture.setPrice(lectureDto.getPrice());
         existingLecture.setTitle(lectureDto.getTitle());
         existingLecture.setContent(lectureDto.getContent());
-        existingLecture.setWeek(lectureDto.getWeek());
         existingLecture.setLearningTarget(lectureDto.getLearning_target());
+        existingLecture.setWeek(lectureDto.getWeek());
         existingLecture.setRecruitEnd_date(lectureDto.getRecruitEnd_date());
         existingLecture.setStart_date(lectureDto.getStart_date());
         existingLecture.setEnd_date(lectureDto.getEnd_date());
+        existingLecture.setMaxParticipants(lectureDto.getMax_participants());
         existingLecture.setRegion(lectureDto.getRegion());
+        existingLecture.setPrice(lectureDto.getPrice());
+        existingLecture.setBank_name(lectureDto.getBank_name());
+        existingLecture.setAccount_name(lectureDto.getAccount_name());
+        existingLecture.setAccount_number(lectureDto.getAccount_number());
         existingLecture.setImage_url(lectureDto.getImage_url());
 
         LectureEntity updatedLecture = lectureRepository.save(existingLecture);
@@ -219,10 +257,9 @@ public class LectureService {
 
     // 강좌삭제
     @Transactional
-    public void deleteLectureCreatedByUser(Long create_id, String username) {
+    public String deleteLectureCreatedByUser(Long create_id, String username) {
         UserEntity user = userRepository.findByPhoneNumber(username)
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
         LectureEntity lecture = lectureRepository.findById(create_id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
 
@@ -230,14 +267,39 @@ public class LectureService {
             throw new RuntimeException("해당 강좌를 삭제할 권한이 없습니다.");
         }
 
+        String lectureTitle = lecture.getTitle();
+
+        // 해당 강좌에 대한 모든 신청 정보를 삭제
+        lectureApplyRepository.deleteByLecture(lecture);
+
+        // 마지막으로 강좌 삭제
         lectureRepository.deleteById(create_id);
+
+        return lectureTitle;
     }
 
     // 강좌상세보기
-    public LectureDto getDetailLectureById(Long create_id) {
+    public LectureDetailDto getDetailLectureById(Long create_id) {
         LectureEntity lectureEntity = lectureRepository.findById(create_id)
                 .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + create_id));
-        return convertToDto(lectureEntity);
+        LectureDto lectureDto = convertToDto(lectureEntity);
+
+        List<WeekDto> weekDtos = weekRepository.findByCreateId(create_id)
+                .stream()
+                .map(WeekDto::new)
+                .collect(Collectors.toList());
+
+        List<WeekPlanDto> weekPlanDtos = weekRepository.findByCreateId(create_id)
+                .stream()
+                .flatMap(week -> week.getPlans().stream())
+                .map(WeekPlanDto::new)
+                .collect(Collectors.toList());
+
+        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lectureEntity)
+                .orElseThrow(() -> new RuntimeException("출석 정보가 없습니다."));
+        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
+
+        return new LectureDetailDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
     }
 
     // 세션로그인후 자신이 개설한 강좌목록 전체조회

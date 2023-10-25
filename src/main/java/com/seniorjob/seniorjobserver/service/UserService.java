@@ -1,6 +1,7 @@
 package com.seniorjob.seniorjobserver.service;
 
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.UserDetailDto;
 import com.seniorjob.seniorjobserver.dto.UserDto;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,18 +44,18 @@ public class UserService {
     }
 
     // 회원 전체목록
-    public List<UserDto> getAllUsers() {
+    public List<UserDetailDto> getAllUsers() {
         List<UserEntity> userEntities = userRepository.findAll();
         if (userEntities.isEmpty()) {
-            throw new IllegalArgumentException("회원가입된 회원이 없습니다..");
+            throw new IllegalArgumentException("회원가입된 회원이 없습니다.");
         }
         return userEntities.stream()
-                .map(this::convertToDo)
+                .map(this::convertToUserDetailDto)
                 .collect(Collectors.toList());
     }
 
     // 로그인된 회원정보
-    public UserDto getLoggedInUserDetails(){
+    public UserDetailDto getLoggedInUserDetails(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
 
@@ -64,14 +65,13 @@ public class UserService {
         }
 
         UserEntity userEntity = userRepository.findByPhoneNumber(userName)
-                .orElseThrow(()->new UsernameNotFoundException("유저를 찾을 수 없습니다.."));
-        UserDto userDto = convertToDo(userEntity);
-        //userDto.setEncryptionCode(null);
-        return userDto;
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다.."));
+        UserDetailDto userDetailDto = convertToUserDetailDto(userEntity);
+        return userDetailDto;
     }
 
     // 회원정보 수정
-    public UserDto updateUser(UserDto userDto){
+    public UserDetailDto updateUser(UserDetailDto userDetailDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
 
@@ -80,21 +80,44 @@ public class UserService {
             throw new IllegalStateException("로그인을 해주세요!");
         }
 
+        // 모든 필드 체크
+        if(userDetailDto.getName() == null || userDetailDto.getDateOfBirth() == null ||
+                userDetailDto.getJob() == null || userDetailDto.getRegion() == null ||
+                userDetailDto.getImgKey() == null || userDetailDto.getCategory() == null) {
+            throw new IllegalArgumentException("6개 항목을 모두 입력해주세요!");
+        }
+
         UserEntity userEntity = userRepository.findByPhoneNumber(userName)
                 .orElseThrow(()->new UsernameNotFoundException("유저를 찾을 수 없습니다.."));
-        userEntity.setName(Optional.ofNullable(userDto.getName()).orElse(userEntity.getName()));
-        userEntity.setDateOfBirth(Optional.ofNullable(userDto.getDateOfBirth()).orElse(userEntity.getDateOfBirth()));
-        userEntity.setJob(Optional.ofNullable(userDto.getJob()).orElse(userEntity.getJob()));
-        userEntity.setRegion(Optional.ofNullable(userDto.getRegion()).orElse(userEntity.getRegion()));
-        userEntity.setImgKey(Optional.ofNullable(userDto.getImgKey()).orElse(userEntity.getImgKey()));
-        userEntity.setCategory(Optional.ofNullable(userDto.getCategory()).orElse(userEntity.getCategory()));
+        userEntity.setName(Optional.ofNullable(userDetailDto.getName()).orElse(userEntity.getName()));
+        userEntity.setDateOfBirth(Optional.ofNullable(userDetailDto.getDateOfBirth()).orElse(userEntity.getDateOfBirth()));
+        userEntity.setJob(Optional.ofNullable(userDetailDto.getJob()).orElse(userEntity.getJob()));
+        userEntity.setRegion(Optional.ofNullable(userDetailDto.getRegion()).orElse(userEntity.getRegion()));
+        userEntity.setImgKey(Optional.ofNullable(userDetailDto.getImgKey()).orElse(userEntity.getImgKey()));
+        userEntity.setCategory(Optional.ofNullable(userDetailDto.getCategory()).orElse(userEntity.getCategory()));
 
         userRepository.save(userEntity);
-        return convertToDo(userEntity);
+        return convertToUserDetailDto(userEntity);
     }
 
     private UserDto convertToDo(UserEntity userEntity) {
         return UserDto.builder()
+                .uid(userEntity.getUid())
+                .name(userEntity.getName())
+                .phoneNumber(userEntity.getPhoneNumber())
+                .encryptionCode(userEntity.getEncryptionCode())
+                .job(userEntity.getJob())
+                .dateOfBirth(userEntity.getDateOfBirth())
+                .category(userEntity.getCategory())
+                .region(userEntity.getRegion())
+                .imgKey(userEntity.getImgKey())
+                .updateDate(userEntity.getUpdateDate())
+                .createDate(userEntity.getCreateDate())
+                .build();
+    }
+
+    private UserDetailDto convertToUserDetailDto(UserEntity userEntity) {
+        return UserDetailDto.builder()
                 .uid(userEntity.getUid())
                 .name(userEntity.getName())
                 .phoneNumber(userEntity.getPhoneNumber())
