@@ -2,7 +2,9 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
+import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.CreateLectureFullInfoDto;
 import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
@@ -18,7 +20,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mypageApplyLecture") // 신청강좌
@@ -32,8 +36,10 @@ public class MypageApplyLectureController {
     private final LectureProposalService lectureProposalService;
     private final LectureApplyService lectureApplyService;
 
+    private final LectureStepTwoService lectureStepTwoService;
+
     public MypageApplyLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository,
-                                        LectureProposalService lectureProposalService, LectureApplyService lectureApplyService) {
+                                        LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService) {
         this.lectureService = lectureService;
         this.storageService = storageService;
         this.userRepository = userRepository;
@@ -41,6 +47,7 @@ public class MypageApplyLectureController {
         this.lectureRepository = lectureRepository;
         this.lectureProposalService = lectureProposalService;
         this.lectureApplyService = lectureApplyService;
+        this.lectureStepTwoService = lectureStepTwoService;
     }
 
     // 세션로그인후 자신이 신청한 강좌 전체 조화 API (신청강좌)
@@ -60,10 +67,10 @@ public class MypageApplyLectureController {
 
     // 세션로그인후 자신이 신청이유 수정 API (신청강좌)
     @PutMapping("/updateLectureApplyReason")
-    public ResponseEntity<?> updateLectureApplyReason (
+    public ResponseEntity<?> updateLectureApplyReason(
             @RequestParam Long lectureId,
             @RequestParam String newApplyReason,
-            @AuthenticationPrincipal UserDetails userDetails){
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
@@ -103,5 +110,35 @@ public class MypageApplyLectureController {
         }
     }
 
+
+    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Controller
+    @GetMapping("/myApplyLectureAlls/{lectureId}")
+    public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
+            @PathVariable Long lectureId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+            // 현재 사용자가 강좌의 생성자인지 확인
+            LectureEntity lectureEntity = lectureRepository.findById(lectureId)
+                    .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + lectureId));
+            if (!lectureEntity.getUser().equals(currentUser)) {
+                throw new RuntimeException("해당 강좌를 확인할 권한이 없습니다.");
+            }
+
+            CreateLectureFullInfoDto lectureFullInfo = lectureStepTwoService.getFullLectureInfo(lectureId);
+            List<LectureApplyDto> myAppliedLectures = lectureApplyService.getMyAppliedLectures(currentUser.getUid());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("lectureDetails", lectureFullInfo);
+            response.put("myAppliedLectures", myAppliedLectures);
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
+
 
