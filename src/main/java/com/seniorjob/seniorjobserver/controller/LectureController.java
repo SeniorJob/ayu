@@ -3,6 +3,7 @@ package com.seniorjob.seniorjobserver.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
+import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +69,10 @@ public class LectureController {
 
 		lectureDto.setCreator(currentUser.getName()); // 로그인된 사용자의 이름을 creator로 지정
 
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("강좌 대표 이미지를 선택해주세요!");
+		}
+
 		// 이미지 업로드
 		String imageUrl = storageService.uploadImage(file);
 		lectureDto.setImage_url(imageUrl);
@@ -82,30 +86,6 @@ public class LectureController {
 		}
 
 		return ResponseEntity.ok(createdLecture);
-	}
-
-	// 강좌개설 3단계 1,2단계 완료처리API
-	@PostMapping("/completeCreation")
-	public ResponseEntity<?> completeLectureCreation(@RequestBody CompleteLectureDataDto completeData,
-													 @AuthenticationPrincipal UserDetails userDetails) {
-		try {
-			UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-					.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-			//completeData.setUId(currentUser.getUid());
-			completeData.setUid(currentUser.getUid());
-
-			lectureService.createLecture(completeData);
-			return ResponseEntity.ok("강좌가 성공적으로 개설되었습니다.");
-		} catch (DataIntegrityViolationException e) {
-			log.error("Data integrity violation: {}", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("데이터 유효성 오류가 발생했습니다. 입력 값을 확인해주세요.");
-		} catch (Exception e) {
-			log.error("Error: {}", e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("강좌 개설에 실패했습니다. 에러: " + e.getMessage());
-		}
 	}
 
 	// 로그인된 유저의 강좌개설 2단계에서 "이전단계" 강좌개설 1단계 정보를 불러와 수정API Controller
@@ -170,26 +150,24 @@ public class LectureController {
 
 	// 개설된강좌삭제API
 	@PreAuthorize("isAuthenticated()")
-	@DeleteMapping("/{create_id}")
+	@DeleteMapping("/delete/{create_id}")
 	public ResponseEntity<?> deleteMyLecture(
 			@PathVariable Long create_id,
 			@AuthenticationPrincipal UserDetails userDetails) {
-		lectureService.deleteLectureCreatedByUser(create_id, userDetails.getUsername());
-		return ResponseEntity.ok().build();
+		try {
+			String lectureTitle = lectureService.deleteLectureCreatedByUser(create_id, userDetails.getUsername());
+			return ResponseEntity.ok().body(lectureTitle + "이(가) 삭제되었습니다.");
+		} catch (RuntimeException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
 	}
 
 	// 개설된강좌상세정보API
 	// GET /api/lectures/detail/{id}
 	@GetMapping("/detail/{id}")
-	public ResponseEntity<LectureDto> getDetailLectureById(@PathVariable("id") Long id) {
-		LectureDto lecture = lectureService.getDetailLectureById(id);
-		if (lecture != null) {
-			LectureEntity.LectureStatus status = lectureService.getLectureStatus(id);
-			lecture.setStatus(status);
-			return ResponseEntity.ok(lecture);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
+	public ResponseEntity<LectureDetailDto> getLectureDetail(@PathVariable("id") Long id) {
+		LectureDetailDto lectureDetailDto = lectureService.getDetailLectureById(id);
+		return new ResponseEntity<>(lectureDetailDto, HttpStatus.OK);
 	}
 
 	// 세션로그인후 자신이 개설한 강좌목록 전체조회API - 회원으로 이동
@@ -310,11 +288,8 @@ public class LectureController {
 				.price(lectureEntity.getPrice())
 				.title(lectureEntity.getTitle())
 				.content(lectureEntity.getContent())
-				//.cycle(lectureEntity.getCycle())
-				//.count(lectureEntity.getCount())
 				.week(lectureEntity.getWeek())
 				.learning_target(lectureEntity.getLearningTarget())
-				//.attendance_requirements(lectureEntity.getAttendanceRequirements())
 				.start_date(lectureEntity.getStart_date())
 				.end_date(lectureEntity.getEnd_date())
 				.region(lectureEntity.getRegion())
