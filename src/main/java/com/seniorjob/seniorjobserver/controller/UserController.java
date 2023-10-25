@@ -1,9 +1,12 @@
 package com.seniorjob.seniorjobserver.controller;
 
+import antlr.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.LoginRequest;
+import com.seniorjob.seniorjobserver.dto.UserDetailDto;
 import com.seniorjob.seniorjobserver.dto.UserDto;
 import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.service.StorageService;
@@ -16,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +34,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +49,20 @@ public class UserController {
     private final LectureApplyRepository lectureApplyRepository;
     private final LectureProposalRepository lectureProposalRepository;
     private final LectureProposalApplyRepository lectureProposalApplyRepository;
+    private final WeekRepository weekRepository;
+    private final WeekPlanRepository weekPlanRepository;
+    private final AttendanceRepository attendanceRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    public UserController(UserService userService, UserRepository userRepository, PasswordEncoder pwEncoder, StorageService storageService, ObjectMapper objectMapper, LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository, LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository) {
+    public UserController(UserService userService, UserRepository userRepository, PasswordEncoder pwEncoder,
+                          StorageService storageService, ObjectMapper objectMapper,
+                          LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository,
+                          LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository,
+                          WeekRepository weekRepository, WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.storageService = storageService;
@@ -57,6 +71,9 @@ public class UserController {
         this.lectureApplyRepository = lectureApplyRepository;
         this.lectureProposalRepository = lectureProposalRepository;
         this.lectureProposalApplyRepository = lectureProposalApplyRepository;
+        this.weekRepository = weekRepository;
+        this.weekPlanRepository = weekPlanRepository;
+        this.attendanceRepository = attendanceRepository;
     }
 
     // 회원가입API with 암호화 세션//
@@ -66,6 +83,19 @@ public class UserController {
             @RequestParam("file") MultipartFile file) {
         try {
             UserDto userDto = objectMapper.readValue(userDtoJson, UserDto.class);
+
+            Map<String, String> requireInput = new HashMap<>();
+            requireInput.put("이름 ", userDto.getName());
+            requireInput.put("휴대폰번호 ", userDto.getPhoneNumber());
+            requireInput.put("비밀번호 ", userDto.getEncryptionCode());
+            requireInput.put("비밀번호 확인 ", userDto.getConfirmPassword());
+            requireInput.put("직업 ", userDto.getJob());
+
+            for (Map.Entry<String, String> entry : requireInput.entrySet()){
+                if(entry.getValue() == null || entry.getValue().trim().isEmpty()){
+                    return ResponseEntity.badRequest().body(entry.getKey() + "을(를) 입력해주세요!");
+                }
+            }
 
             String encryptionCode = userDto.getEncryptionCode();
             String confirmPassword = userDto.getConfirmPassword();
@@ -78,6 +108,11 @@ public class UserController {
             // 비밀번호 확인 비교
             if (!encryptionCode.equals(confirmPassword)) {
                 return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다!!");
+            }
+
+            // 전화번호확인
+            if(!isValidPhoneNumber(userDto.getPhoneNumber())){
+                return ResponseEntity.badRequest().body("전화번호는 앞 3자리를 포함하여 11자리를 입력해주세요!");
             }
 
             String imageUrl = storageService.uploadImage(file);
@@ -99,17 +134,39 @@ public class UserController {
         return password.matches("^(?=.*[A-Za-z])(?=.*\\d).{6,12}$");
     }
 
+    // 숫자만 11자리인 형태로 전화번호 검증
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        return phoneNumber != null && phoneNumber.matches("^\\d{11}$");
+    }
+
+
     // 세션 로그인
     // POST /api/users/login
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserName = authentication.getName();
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+        String phoneNumber = loginRequest.getPhoneNumber();
+        String password = loginRequest.getPassword();
+        if (phoneNumber == null || password == null || phoneNumber.trim().isEmpty() || password.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("아이디와 비밀번호를 입력해주세요");
+        }
 
-        UserEntity user = userRepository.findByPhoneNumber(currentUserName)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. 회원가입을 진행해주세요!"));
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(phoneNumber, password);
 
-        return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
+        try {
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
+                    .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. 회원가입을 진행해주세요!"));
+
+            return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러가 발생하였습니다. 관리자에게 문의해주세요");
+        }
     }
 
     // 세션 로그아웃
@@ -120,14 +177,13 @@ public class UserController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
         try {
-            List<UserDto> users = userService.getAllUsers();
+            List<UserDetailDto> users = userService.getAllUsers();
             return new ResponseEntity<>(users, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT); // 회원이 없을 때의 메시지를 반환합니다.
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT);
         } catch (Exception e) {
-            // 로깅 추가
-            e.printStackTrace(); // 이것은 임시 로깅입니다. 실제 프로덕션에서는 SLF4J, Logback 등의 로깅 프레임워크를 사용하여 로그를 남기는 것이 좋습니다.
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 그 외의 에러 메시지를 반환합니다.
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -136,7 +192,7 @@ public class UserController {
     @GetMapping("/detail")
     public ResponseEntity<?> getUserDetails() {
         try {
-            UserDto userDto = userService.getLoggedInUserDetails();
+            UserDetailDto userDto = userService.getLoggedInUserDetails();
             return ResponseEntity.ok(userDto);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -158,7 +214,7 @@ public class UserController {
     ) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        UserDto userDto = objectMapper.readValue(userDtoJson, UserDto.class);
+        UserDetailDto userDetailDto = objectMapper.readValue(userDtoJson, UserDetailDto.class);
 
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -169,12 +225,12 @@ public class UserController {
                 storageService.deleteImage(currentUser.getImgKey()); // 기존 이미지 삭제
             }
             String imageUrl = storageService.uploadImage(file);
-            userDto.setImgKey(imageUrl);
+            userDetailDto.setImgKey(imageUrl);
         }
 
         try {
-            UserDto updateUser = userService.updateUser(userDto);
-            return ResponseEntity.ok(updateUser);
+            UserDetailDto updatedUser = userService.updateUser(userDetailDto);
+            return ResponseEntity.ok(updatedUser);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (UsernameNotFoundException e) {

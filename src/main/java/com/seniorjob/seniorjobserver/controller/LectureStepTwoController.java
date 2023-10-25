@@ -93,14 +93,15 @@ public class LectureStepTwoController {
     }
 
     // 2. weekTitle삭제API Controller
+    // week삭제시 week를 참조하는 week_plan도 삭제된다.
     @DeleteMapping("/{lectureId}/weeks/{weekId}/week-delete")
     public ResponseEntity<String> deleteWeek(
             @PathVariable Long lectureId,
             @PathVariable Long weekId,
-            @PathVariable Long planId,
             @AuthenticationPrincipal UserDetails userDetails){
         lectureStepTwoService.deleteWeek(lectureId, weekId, userDetails);
-        return ResponseEntity.ok(String.format("%d가 삭제되었습니다.", weekId));
+        return ResponseEntity.ok(String.format("%d강좌의 %d주차별제목과 해당 주차별 제목을 참조하는 " +
+                "주차별 상세내용들이 삭제되었습니다.", lectureId, weekId));
     }
 
     // 2. weekPlan수정API Controller

@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,6 +33,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
     @Autowired
     private UserRepository userRepository;
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -57,8 +62,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lecturesStepTwo/lectures/**/weeks/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review",
                         "/api/lecturesStepTwo/**/weeks/**/week-update", "/api/lecturesStepTwo/**/weeks/**/week-delete",
                         "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete",
-                        "/api/mypageApplyLecture/myApplyLectureAlls/**",
-                        "/api/mypageCreateLecture/myCreateLectureAlls/**"
+                        "/api/lectures/delete/**"
                 ).authenticated()
                 .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
                         "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",
@@ -66,12 +70,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
-                    .loginPage("/login")
-                    .defaultSuccessUrl("/main")
-                    .loginProcessingUrl("/login")
-                    .failureHandler(new CustomAuthFailureHandler())
-                    .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
-                    .permitAll()
+                .loginPage("/login")
+                .defaultSuccessUrl("/main")
+                .failureHandler(new CustomAuthFailureHandler())
+                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
+                .permitAll()
                 .and()
                 .httpBasic()
                 .and()
@@ -79,16 +82,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> {
-                    if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
-                        response.setCharacterEncoding("UTF-8");
-                        response.setContentType("application/json");
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        PrintWriter out = response.getWriter();
-                        out.println("{\"message\":\"로그인이 필요합니다.\"}");
-                    } else {
-                        response.sendRedirect("/login");
-                    }
+                    response.setCharacterEncoding("UTF-8");
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    PrintWriter out = response.getWriter();
+                    out.println("{\"message\":\"로그인이 필요합니다.\"}");
                 })
+
                 .accessDeniedHandler(new CustomAccessDeniedHandler())
                 .and()
                 .csrf().disable()
@@ -136,11 +136,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    public static void main(String[] args) {
-        SpringApplication.run(SecurityConfiguration.class, args);
-    }
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
