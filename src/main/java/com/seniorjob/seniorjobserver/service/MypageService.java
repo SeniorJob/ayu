@@ -7,6 +7,7 @@ import com.seniorjob.seniorjobserver.domain.entity.WeekEntity;
 import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -65,6 +66,13 @@ public class MypageService {
 
         // 최종적으로 모든 정보를 하나의 DTO에 담아 반환
         return new LectureDetailDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
+    }
+
+    // 세션로그인후 자신이 개설한 강좌목록 전체조회
+    public List<LectureDto> getMyLectureAll(Long userId){
+        UserEntity user = userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+        List<LectureEntity> myLectureAll = lectureRepository.findAllByUser(user);
+        return myLectureAll.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     private LectureDto convertToDto(LectureEntity lecture) {
