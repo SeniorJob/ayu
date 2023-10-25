@@ -62,12 +62,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lecturesStepTwo/lectures/**/weeks/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review",
                         "/api/lecturesStepTwo/**/weeks/**/week-update", "/api/lecturesStepTwo/**/weeks/**/week-delete",
                         "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete",
-<<<<<<< HEAD
                         "/api/lectures/delete/**"
-=======
-                        "/api/mypageApplyLecture/myApplyLectureAlls/**",
-                        "/api/mypageCreateLecture/myCreateLectureAlls/**"
->>>>>>> develop
                 ).authenticated()
                 .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
                         "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",
