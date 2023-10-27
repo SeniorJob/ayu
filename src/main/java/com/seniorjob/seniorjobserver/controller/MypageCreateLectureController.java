@@ -70,28 +70,6 @@ public class MypageCreateLectureController {
         return ResponseEntity.ok(myLectureAll);
     }
 
-
-    // 세션로그인 후 자신이 개설한 강좌 글 상세보기 API
-    @GetMapping("/myLectureDetail/{id}")
-    public ResponseEntity<LectureDto> getMyLectureDetail(
-            @PathVariable("id") Long id,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
-        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-        LectureDto lecture = lectureService.getMyLectureDetail(id, currentUser.getUid());
-
-        if (lecture != null) {
-            LectureEntity.LectureStatus status = lectureService.getLectureStatus(id);
-            lecture.setStatus(status);
-            return ResponseEntity.ok(lecture);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 강좌 상세보기API
     @GetMapping("/myCreateLectureAlls/{lectureId}")
     public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
@@ -118,10 +96,11 @@ public class MypageCreateLectureController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    // 필터링
-    // api/lectures/filter == 모든강좌조회
-    // api/lectures/filter?title="강좌제목" == 제목만으로 검색
-    // api/lectures/filter?title="강좌제목"&filter=최신순
+
+    // 세션로그인 후 자신이 개설한 강좌 글 전체보기 + 필터링 API
+    // api/mypageCreateLecture/filter == 모든강좌조회
+    // api/mypageCreateLecture/filter?title="강좌제목" == 제목만으로 검색
+
     @GetMapping("/filter")
     public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
             @RequestParam(value = "title", required = false) String title,
