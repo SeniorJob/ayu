@@ -5,9 +5,13 @@ import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.dto.LectureProposalDto;
+import com.seniorjob.seniorjobserver.dto.MypageLectureProposalDto;
 import com.seniorjob.seniorjobserver.repository.LectureProposalRepository;
+import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,12 +23,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class LectureProposalService {
-
     private final LectureProposalRepository lectureProposalRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public LectureProposalService(LectureProposalRepository lectureProposalRepository, UserRepository userRepository) {
+    public LectureProposalService(LectureProposalRepository lectureProposalRepository, UserRepository userRepository, LectureRepository lectureRepository) {
         this.lectureProposalRepository = lectureProposalRepository;
         this.userRepository = userRepository;
     }
@@ -64,13 +67,27 @@ public class LectureProposalService {
     }
 
     // 현재 로그인한 사용자가 제안한 강좌 목록 조회
-    public List<LectureProposalDto> getMyProposalAll(Long userId) {
+    public List<MypageLectureProposalDto> getMyProposalAll(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
         List<LectureProposalEntity> myProposalAll = lectureProposalRepository.findAllByUser(user);
-        return myProposalAll.stream().map(this::convertToDto).collect(Collectors.toList());
+        return myProposalAll.stream()
+                .map(this::convertToMypageDto)
+                .collect(Collectors.toList());
     }
 
+    private MypageLectureProposalDto convertToMypageDto(LectureProposalEntity entity) {
+        MypageLectureProposalDto mypageDto = new MypageLectureProposalDto();
+        mypageDto.setTitle(entity.getTitle());
+        mypageDto.setProposalId(entity.getProposal_id());
+        mypageDto.setRegion(entity.getRegion());
+        mypageDto.setContent(entity.getContent());
+        mypageDto.setCategory(entity.getCategory());
+        mypageDto.setCreatedDate(entity.getCreated_date());
+        mypageDto.setUser(entity.getUser());
+        // 나머지 필드를 복사 또는 설정
+        return mypageDto;
+    }
     private LectureProposalDto convertToDto(LectureProposalEntity lectureProposalEntity) {
         return LectureProposalDto.builder()
                 .proposalId(lectureProposalEntity.getProposal_id())
@@ -163,4 +180,30 @@ public class LectureProposalService {
 
         return LectureProposalDto.convertToDto(entity);
     }
+
+    // 필터링 : 제목검색 -> 최신순,오래된순, 가격높은순, 가격낮은순, 인기순, 지역(시,군),
+    // 상좌상태(모집중 = 신청가능상태,  개설대기중 = 개설대기상태, 진행중 = 진행상태), 카테고리
+    public List<MypageLectureProposalDto> filterLectures(List<MypageLectureProposalDto> lectureProposalList, String filter, boolean descending) {
+        switch (filter){
+            case "latest":
+                return sortLecturesByCreatedDate(lectureProposalList, descending);
+            default:
+                throw new IllegalArgumentException("잘못된 필터조건");
+        }
+    }
+
+
+    // 강좌정렬
+    // 최신순으로 강좌 정렬 최신 = true 오래된 = false
+    public List<MypageLectureProposalDto> sortLecturesByCreatedDate(List<MypageLectureProposalDto> lectureProposalList, boolean descending) {
+        lectureProposalList.sort((a, b) -> descending ?
+                b.getCreatedDate().compareTo(a.getCreatedDate()) :
+                a.getCreatedDate().compareTo(b.getCreatedDate()));
+        return lectureProposalList;
+    }
+
+    //페이징
+    public Page<LectureProposalEntity> getLectures(Pageable pageable) { return lectureProposalRepository.findAll(pageable); }
+
+
 }
