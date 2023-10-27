@@ -22,8 +22,8 @@ public class WeekEntity extends TimeEntity{
     @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WeekPlanEntity> plans = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "create_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "create_id", referencedColumnName = "create_id")
     private LectureEntity create_id;
 
     private Integer week_number;

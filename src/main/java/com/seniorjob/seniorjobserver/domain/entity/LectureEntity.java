@@ -71,9 +71,12 @@ public class LectureEntity extends TimeEntity {
     private Long create_id;
 
     @OneToMany(mappedBy = "create_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WeekEntity> weeks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "create_id", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AttendanceEntity> attendances = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "uid", referencedColumnName = "uid")
     private UserEntity user;
 

@@ -37,6 +37,11 @@ public class LectureApplyService {
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("강좌를 찾을 수 없습니다. id: " + lectureId));
 
+        // 자신이 개설한 강좌에는 참여할 수 없다.
+        if(lecture.getUser().getUid().equals(userId)){
+            throw new RuntimeException("자신이 만든 강좌에는 참여할 수 없습니다.");
+        }
+
         // 강좌의 상태가 '신청가능상태'가 아닌 경우 예외 처리
         if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
             throw new RuntimeException("현재 이 강좌는 '신청가능상태'가 아닙니다.");
@@ -45,6 +50,11 @@ public class LectureApplyService {
         // 이미 강좌에 참여한 경우 예외 처리
         if (lectureApplyRepository.existsByUserAndLecture(user, lecture)) {
             throw new RuntimeException(lectureId + " 이미 참여하신 강좌입니다.");
+        }
+
+        // 최대 참여 인원 수 초과 예외 처리
+        if(lecture.getCurrentParticipants() >= lecture.getMaxParticipants()){
+            throw new RuntimeException(lecture.getTitle()+ " 강좌의 최대 참여인원이 초과되었습니다.");
         }
 
         // 모집마감된 경우 예외 처리
@@ -73,11 +83,16 @@ public class LectureApplyService {
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("강좌를 찾을 수 없습니다. id: " + lectureId));
 
+        // 신청강좌취소는 “모집중 = 신청가능상태”, “개설대기중 = 개설대기상태” 만 가능하다.
+        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태 &&
+                lecture.getStatus() != LectureEntity.LectureStatus.개설대기상태) {
+            throw new RuntimeException("신청강좌취소는 “모집중 = 신청가능상태”, “개설대기중 = 개설대기상태” 만 가능합니다.");
+        }
+
         LectureApplyEntity lectureApply = lectureApplyRepository.findByUserAndLecture(user, lecture)
                 .orElseThrow(() -> new RuntimeException("신청된 강좌를 찾을 수 없습니다. userId: " + userId + ", lectureId: " + lectureId));
 
         lecture.decreaseCurrentParticipants();
-
         lectureApplyRepository.delete(lectureApply);
 
         return lectureApply;
@@ -139,11 +154,6 @@ public class LectureApplyService {
 
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("해당 강좌를 찾을 수 없습니다. id: " + lectureId));
-
-        // 로그인된 사용자가 이 강좌의 개설자인지 확인
-        if (!lecture.getUser().getUid().equals(user.getUid())) {
-            throw new RuntimeException("이 강좌를 개설한 사용자만 승인 상태를 변경할 수 있습니다.");
-        }
 
         LectureApplyEntity lectureApply = lectureApplyRepository.findByUserAndLecture(user, lecture)
                 .orElseThrow(() -> new RuntimeException("해당 회원의 신청한 강좌를 찾을 수 없습니다."));

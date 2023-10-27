@@ -18,4 +18,7 @@ public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Lo
     Optional<AttendanceEntity> findByCreate_id(@Param("create_id") LectureEntity create_id);
     @Query("SELECT a FROM AttendanceEntity a WHERE a.create_id.create_id = :createId")
     List<AttendanceEntity> findByCreateId(@Param("createId") Long createId);
+    @Modifying
+    @Query("DELETE FROM AttendanceEntity w WHERE w.create_id = :lecture")
+    void deleteByLecture(@Param("lecture") LectureEntity lecture);
 }

@@ -112,6 +112,17 @@ public class LectureApplyController {
             @RequestParam Long lectureId,
             @RequestParam LectureApplyEntity.LectureApplyStatus status,
             @AuthenticationPrincipal UserDetails userDetails) {
+
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+        // 현재 사용자가 강좌의 생성자인지 확인
+        LectureEntity lectureEntity = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + lectureId));
+        if (!lectureEntity.getUser().equals(currentUser)) {
+            throw new RuntimeException("해당 강좌의 참여신청 승인 상태 개별을 변경할 권한이 없습니다.");
+        }
+
         try {
             Long loggedInUserId = Long.valueOf(((User)userDetails).getUsername());  // userDetails에서 ID 추출
             lectureApplyService.updateLectureApplyStatus(userId, lectureId, status, loggedInUserId);
