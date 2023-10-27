@@ -83,8 +83,8 @@ public class UserService {
         // 모든 필드 체크
         if(userDetailDto.getName() == null || userDetailDto.getDateOfBirth() == null ||
                 userDetailDto.getJob() == null || userDetailDto.getRegion() == null ||
-                userDetailDto.getImgKey() == null || userDetailDto.getCategory() == null) {
-            throw new IllegalArgumentException("6개 항목을 모두 입력해주세요!");
+                userDetailDto.getCategory() == null) {
+            throw new IllegalArgumentException("5개 항목을 모두 입력해주세요!");
         }
 
         UserEntity userEntity = userRepository.findByPhoneNumber(userName)
@@ -127,8 +127,8 @@ public class UserService {
                 .category(userEntity.getCategory())
                 .region(userEntity.getRegion())
                 .imgKey(userEntity.getImgKey())
-                .updateDate(userEntity.getUpdateDate())
                 .createDate(userEntity.getCreateDate())
+                .updateDate(userEntity.getUpdateDate())
                 .build();
     }
 }

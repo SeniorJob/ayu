@@ -2,10 +2,9 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.seniorjob.seniorjobserver.dto.CompleteLectureDataDto;
+import com.seniorjob.seniorjobserver.dto.FilterLectureDto;
 import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lectures")
@@ -88,8 +88,7 @@ public class LectureController {
 		return ResponseEntity.ok(createdLecture);
 	}
 
-	// 로그인된 유저의 강좌개설 2단계에서 "이전단계" 강좌개설 1단계 정보를 불러와 수정API Controller
-	// 로그인된 유저의 개설된 강좌에서 강좌개설 1단계 정보를 불러와 수정API Controller
+	// 강좌개설 1단계 정보를 불러와 수정API Controller
 	// PUT /api/lectures/{id}
 	@PutMapping("/{id}")
 	public ResponseEntity<LectureDto> updateLecture(
@@ -209,7 +208,7 @@ public class LectureController {
 	// api/lectures/filter?title="강좌제목" == 제목만으로 검색
 	// api/lectures/filter?title="강좌제목"&filter=최신순
 	@GetMapping("/filter")
-	public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
+	public ResponseEntity<Page<FilterLectureDto>> filterAndPaginateLectures(
 			@RequestParam(value = "title", required = false) String title,
 			@RequestParam(value = "filter", required = false) String filter,
 			@RequestParam(value = "region", required = false) String region,
@@ -220,6 +219,7 @@ public class LectureController {
 			@RequestParam(value = "descending", defaultValue = "false") boolean descending) {
 
 		List<LectureDto> lectureList = new ArrayList<>();
+
 		// 필터링 : 제목 검색
 		if (title != null && !title.isEmpty()) {
 			lectureList = lectureService.searchLecturesByTitle(title);
@@ -235,7 +235,8 @@ public class LectureController {
 			lectureList = lectureService.filterRegion(lectureList, region);
 		}
 
-		// 필터링 : 모집중 = 신청가능상태, 개설대기중 = 개설대기상태, 진행중 = 진행상태
+		// 기본값 "모집중" 강좌만 필터링
+		// 필터링 : 모집중 = 신청가능상태, 개설대기중 = 개설대기상태, 진행중 = 진행상태, 완료강좌 = 완료상태
 		if (status != null && !status.isEmpty()) {
 			LectureEntity.LectureStatus lectureStatus;
 
@@ -249,6 +250,8 @@ public class LectureController {
 				case "진행중":
 					lectureStatus = LectureEntity.LectureStatus.진행상태;
 					break;
+				case "완료강좌":
+					lectureStatus = LectureEntity.LectureStatus.완료상태;
 				default:
 					throw new IllegalArgumentException("잘못된 상태 키워드입니다.");
 			}
@@ -260,6 +263,9 @@ public class LectureController {
 			lectureList = lectureService.filterCategory(lectureList, category);
 		}
 
+		// "철회상태" 제외 처리 추가
+		lectureList = lectureService.excludeWithdrawnStatus(lectureList);
+
 		// 검색결과에 해당하는 강좌가 없을경우
 		if (lectureList.isEmpty()) {
 			throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.ㅠㅠ");
@@ -269,8 +275,12 @@ public class LectureController {
 		Pageable pageable = PageRequest.of(page, size);
 		int start = (int) pageable.getOffset();
 		int end = Math.min((start + pageable.getPageSize()), lectureList.size());
-		Page<LectureDto> pagedLectureDto = new PageImpl<>(lectureList.subList(start, end), pageable, lectureList.size());
-		return ResponseEntity.ok(pagedLectureDto);
+		List<FilterLectureDto> filteredLectureList = lectureList.stream()
+				.map(FilterLectureDto::from)
+				.collect(Collectors.toList());
+
+		Page<FilterLectureDto> filteredLectureDto = new PageImpl<>(filteredLectureList.subList(start, end), pageable, filteredLectureList.size());
+		return ResponseEntity.ok(filteredLectureDto);
 	}
 
 	private LectureDto convertToDto(LectureEntity lectureEntity) {
@@ -297,4 +307,5 @@ public class LectureController {
 				.createdDate(lectureEntity.getCreatedDate())
 				.build();
 	}
+
 }

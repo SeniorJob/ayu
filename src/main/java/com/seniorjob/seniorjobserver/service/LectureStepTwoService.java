@@ -100,8 +100,14 @@ public class LectureStepTwoService {
     public AttendanceDto setAttendanceCondition(Long lectureId, int requireAttendance){
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(()-> new ResourceNotFoundException("강좌개설2단계에서 해당 주차를 찾을 수 없습니다."));
-        if(requireAttendance <= 0 || requireAttendance >= 5){
-            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 5회 이하로 설정해 주세요");
+
+        // 강좌 상태 검사
+        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
+            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
+        }
+
+        if(requireAttendance <= 0 || requireAttendance >= 10){
+            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
         }
         AttendanceEntity attendanceEntity = AttendanceEntity.builder()
                 .create_id(lecture)
@@ -112,7 +118,7 @@ public class LectureStepTwoService {
         return new AttendanceDto(attendanceEntity);
     }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Service
+    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Service == 상세정보로 활용
     public CreateLectureFullInfoDto getFullLectureInfo(Long lectureId) {
         // 강좌개설1단계 : 강좌 정보 가져오기
         LectureEntity lecture = lectureRepository.findById(lectureId)
@@ -139,8 +145,6 @@ public class LectureStepTwoService {
         return new CreateLectureFullInfoDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
     }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "이전단계"로 돌아가 수정하는 로직
-
     // 1. weekTitle수정 Service
     public WeekDto updateWeekTitle(Long lectureId, Long weekId, String title, UserDetails userDetails){
         LectureEntity lecture = lectureRepository.findById(lectureId)
@@ -148,10 +152,6 @@ public class LectureStepTwoService {
 
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                 .orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-        if (!lecture.getUser().getUid().equals(currentUser.getUid())) {
-            throw new RuntimeException("해당 강좌를 수정할 권한이 없습니다.");
-        }
 
         if (title == null || title.trim().isEmpty()){
             throw new IllegalArgumentException("제목을 입력해주세요! 입력하지 않으시면 삭제해주세요!");
@@ -168,13 +168,6 @@ public class LectureStepTwoService {
     public void deleteWeek(Long lectureId, Long weekId, UserDetails userDetails){
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
-
-        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-                .orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-        if (!lecture.getUser().getUid().equals(currentUser.getUid())) {
-            throw new RuntimeException("해당 강좌를 삭제할 권한이 없습니다.");
-        }
 
         WeekEntity weekEntity = weekRepository.findByIdAndCreateId(weekId, lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
@@ -221,8 +214,13 @@ public class LectureStepTwoService {
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
 
-        if (requiredAttendance <= 0 || requiredAttendance >= 5) {
-            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 5회 이하로 설정해 주세요");
+        // 강좌 상태 검사
+        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
+            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
+        }
+
+        if (requiredAttendance <= 0 || requiredAttendance >= 10) {
+            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
         }
 
         AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
@@ -233,10 +231,6 @@ public class LectureStepTwoService {
 
         return new AttendanceDto(attendanceEntity);
     }
-
-
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "강좌개설" 클릭시 강좌가 최종 개설되는 API Service
-
 
     private LectureDto convertToDto(LectureEntity lecture) {
         UserEntity userEntity = lecture.getUser();
