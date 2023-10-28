@@ -1,9 +1,9 @@
 package com.seniorjob.seniorjobserver.controller;
 
-import com.amazonaws.services.kms.model.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.seniorjob.seniorjobserver.dto.*;
+import com.seniorjob.seniorjobserver.dto.FilterLectureDto;
+import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.LectureService;
 import com.seniorjob.seniorjobserver.service.StorageService;
@@ -280,41 +281,6 @@ public class LectureController {
 
 		Page<FilterLectureDto> filteredLectureDto = new PageImpl<>(filteredLectureList.subList(start, end), pageable, filteredLectureList.size());
 		return ResponseEntity.ok(filteredLectureDto);
-	}
-
-	// 인가강좌API - '신청가능상태'의 강좌중 current_participants가 많은순으로 지정한 갯수만큼 출력된다.
-	@GetMapping("/popular")
-	public ResponseEntity<List<RecommendLectureDto>> getPopularLectures(
-			@RequestParam(required = true) Integer limit) {
-		List<RecommendLectureDto> popularLectures = lectureService.getPopularLecturesAsRecommend(limit);
-		if(popularLectures.isEmpty()){
-			throw new NotFoundException("현재 신청가능상태 = 모집중 상태의 강좌가 없습니다.");
-		}
-		return ResponseEntity.ok(popularLectures);
-	}
-
-	// 추천강좌API - 로그인한 회원의 카테고리를 기준으로 해당 카테고리가 일치하는 강좌중
-	// '신청가능상태'의 강좌의 current_participants가 많은순으로 지정한 갯수많큼 출력된다.
-	@GetMapping("/recommendLecture")
-	public ResponseEntity<List<RecommendLectureDto>> getRecommendLectures(
-			@RequestParam int limit,
-			@AuthenticationPrincipal UserDetails userDetails){
-
-		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-		List<RecommendLectureDto> recommendLectures = lectureService.getRecommendedLectures(limit, currentUser.getCategory(), currentUser.getName());
-
-		// 추천 강좌의 수가 limit 미만일 경우, 부족한 부분을 인기 강좌로 채움
-		if (recommendLectures.size() < limit) {
-			int needed = limit - recommendLectures.size();
-			List<RecommendLectureDto> popularLecturesConverted = lectureService.getPopularLecturesAsRecommend(needed);
-			if(!popularLecturesConverted.isEmpty()){
-				recommendLectures.addAll(popularLecturesConverted);
-			}
-		}
-
-		return ResponseEntity.ok(recommendLectures);
 	}
 
 	private LectureDto convertToDto(LectureEntity lectureEntity) {

@@ -45,7 +45,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/users/join", "/api/users/all", "/api/users/login",
                         "/api/lectures/all", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/search",
                         "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list",
-                        "/api/lectureproposal/all", "/api/lectureproposal/detail/**", "/api/lectures/popular").permitAll()
+                        "/api/lectureproposal/all", "/api/lectureproposal/detail/**").permitAll()
                 .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
                         "/register", "/lecture/cancel-lecture-apply/**").permitAll()
                 .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
@@ -56,13 +56,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureproposalapply/cancel/**", "/api/lectureproposalapply/approve",
                         "/api/lectureproposalapply/close",
                         "/api/mypageApplyLecture/myApplyLectureAll", "/api/mypageApplyLecture/updateLectureApplyReason",
-                        "/api/mypageCreateLecture/myCreateLectureAll", "/api/mypageCreateLecture/myCreateLectureDetail/**",
+                        "/api/mypageCreateLecture/myCreateLectureAll",
                         "/api/myProposalLecture/myProposalAll", "/api/users/delete", "/api/mypageApplyLecture/deleteLectureApply/**",
                         "/api/lecturesStepTwo/week-title/**", "/api/lectures/completeCreation", "/api/lecturesStepTwo/**/weeks",
                         "/api/lecturesStepTwo/lectures/**/weeks/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review",
                         "/api/lecturesStepTwo/**/weeks/**/week-update", "/api/lecturesStepTwo/**/weeks/**/week-delete",
                         "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete",
-                        "/api/lectures/delete/**", "/api/lectures/recommendLecture"
+                        "/api/lectures/delete/**"
                 ).authenticated()
                 .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
                         "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",

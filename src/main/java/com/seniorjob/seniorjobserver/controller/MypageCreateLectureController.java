@@ -2,7 +2,10 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
-import com.seniorjob.seniorjobserver.dto.*;
+import com.seniorjob.seniorjobserver.dto.CreateLectureFullInfoDto;
+import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
+import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
+import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.*;
@@ -38,10 +41,8 @@ public class MypageCreateLectureController {
     private final LectureApplyService lectureApplyService;
     private final LectureStepTwoService lectureStepTwoService;
     private final MypageService mypageService;
-    private final MyPageCreateLectureService myPageCreateLectureService;
     public MypageCreateLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository ,
-                            LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService, MypageService mypageService,
-                                         MyPageCreateLectureService myPageCreateLectureService) {
+                            LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService, MypageService mypageService) {
         this.lectureService = lectureService;
         this.storageService = storageService;
         this.userRepository = userRepository;
@@ -51,15 +52,16 @@ public class MypageCreateLectureController {
         this.lectureApplyService = lectureApplyService;
         this.lectureStepTwoService = lectureStepTwoService;
         this.mypageService = mypageService;
-        this.myPageCreateLectureService = myPageCreateLectureService;
     }
 
-    // 마이페이지(개설강좌) - 세션로그인후 자신이 개설한 강좌목록 전체조회API Refactoring
+
+    // 세션로그인후 자신이 개설한 강좌목록 전체조회API - 회원으로 이동 (개설강좌)
     @GetMapping("/myCreateLectureAll")
-    public ResponseEntity<?> getMyPageCreateLectureAll(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getMyLectureAll(
+            @AuthenticationPrincipal UserDetails userDetails) {
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-        List<MyPageCreateLectureDto> myLectureAll = myPageCreateLectureService.getMyPageCreateLectureAll(currentUser.getUid());
+        List<LectureDto> myLectureAll = lectureService.getMyLectureAll(currentUser.getUid());
 
         if (myLectureAll.isEmpty()) {
             return ResponseEntity.ok("개설된 강좌가 없습니다.");
@@ -68,9 +70,8 @@ public class MypageCreateLectureController {
         return ResponseEntity.ok(myLectureAll);
     }
 
-    // 마이페이지(개설강좌) - 세션로그인후 자신이 개설한 강좌상세보기API Refactoring
-    // 수정, 삭제 가능
-    @GetMapping("/myCreateLectureDetail/{lectureId}")
+    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 강좌 상세보기API
+    @GetMapping("/myCreateLectureAlls/{lectureId}")
     public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
             @PathVariable Long lectureId,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -96,15 +97,17 @@ public class MypageCreateLectureController {
         }
     }
 
-    // 마이페이지(개설강좌) - 세션로그인 후 자신이 개설한 강좌 검색 + 필터링 API Refactoring
-    // 제목 + 정렬(최신순, 오래된순, 인기순, 가격높은순, 가격낮은순) + 필터링(강좌상태)
+    // 세션로그인 후 자신이 개설한 강좌 글 전체보기 + 필터링 API
     // api/mypageCreateLecture/filter == 모든강좌조회
     // api/mypageCreateLecture/filter?title="강좌제목" == 제목만으로 검색
+
     @GetMapping("/filter")
-    public ResponseEntity<Page<MyPageCreateLectureDto>> filterAndPaginateLectures2(
+    public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "category", required = false) String category,
             @RequestParam(defaultValue = "0", name = "page") int page,
             @RequestParam(defaultValue = "12", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "false") boolean descending,
@@ -114,16 +117,21 @@ public class MypageCreateLectureController {
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
         // 사용자가 개설한 전체 강좌 가져오기
-        List<MyPageCreateLectureDto> myLectureAll = myPageCreateLectureService.getMyPageCreateLectureAll(currentUser.getUid());
+        List<LectureDto> myLectureAll = lectureService.getMyLectureAll(currentUser.getUid());
 
         // 필터링: 제목 검색
         if (title != null && !title.isEmpty()) {
-            myLectureAll = myPageCreateLectureService.searchLecturesByTitle(title);
+            myLectureAll = lectureService.searchLecturesByTitle(title);
         }
 
         // 필터링: 조건에 따라 lectureList 필터링
         if (filter != null && !filter.isEmpty()) {
-            myLectureAll = myPageCreateLectureService.filterLectures(myLectureAll, filter, descending);
+            myLectureAll = lectureService.filterLectures(myLectureAll, filter, descending);
+        }
+
+        // 필터링: 지역 검색
+        if (region != null && !region.isEmpty()) {
+            myLectureAll = lectureService.filterRegion(myLectureAll, region);
         }
 
         // 필터링: 모집중, 개설대기중, 진행중 상태에 따라 필터링
@@ -146,7 +154,12 @@ public class MypageCreateLectureController {
                     throw new IllegalArgumentException("잘못된 상태 키워드입니다.");
             }
 
-            myLectureAll = myPageCreateLectureService.filterStatus(myLectureAll, lectureStatus);
+            myLectureAll = lectureService.filterStatus(myLectureAll, lectureStatus);
+        }
+
+        // 필터링: 카테고리명
+        if (category != null && !category.isEmpty()) {
+            myLectureAll = lectureService.filterCategory(myLectureAll, category);
         }
 
         // 검색결과에 해당하는 강좌가 없을 경우
@@ -158,7 +171,7 @@ public class MypageCreateLectureController {
         Pageable pageable = PageRequest.of(page, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), myLectureAll.size());
-        Page<MyPageCreateLectureDto> pagedLectureDto = new PageImpl<>(myLectureAll.subList(start, end), pageable, myLectureAll.size());
+        Page<LectureDto> pagedLectureDto = new PageImpl<>(myLectureAll.subList(start, end), pageable, myLectureAll.size());
         return ResponseEntity.ok(pagedLectureDto);
     }
 

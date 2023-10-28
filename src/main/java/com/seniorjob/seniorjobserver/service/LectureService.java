@@ -6,12 +6,11 @@ import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity.LectureStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import javax.transaction.Transactional;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,10 +84,9 @@ public class LectureService {
 
         for(LectureEntity lecture : lectures){
             LectureStatus previousStatus = lecture.getStatus(); // 이전 상태
-            LocalDateTime recruitEndDate = lecture.getRecruitEnd_date().toLocalDate().atStartOfDay(); // 시간, 분, 초를 0으로 설정
 
             // 철회상태: 모집 마감 요청이 없고 모집 마감 날짜가 지났다면
-            if(!lecture.isRecruitmentClosed() && now.isAfter(recruitEndDate)) {
+            if(!lecture.isRecruitmentClosed() && now.isAfter(lecture.getRecruitEnd_date())) {
                 lecture.setStatus(LectureStatus.철회상태);
             }
             // 개설대기상태: 강좌 개설자가 모집 마감 요청을 했으면
@@ -446,25 +447,6 @@ public class LectureService {
         return lectureRepository.findById(lectureId)
                 .map(lecture -> Optional.ofNullable(lecture.getRecruitmentClosed()).orElse(false))
                 .orElse(false);
-    }
-    // 인기강좌 - 비로그인
-    public List<RecommendLectureDto> getPopularLecturesAsRecommend(int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "currentParticipants"));
-        List<LectureEntity> popularLectures = lectureRepository.findByStatusOrderByCurrentParticipantsDesc(LectureEntity.LectureStatus.신청가능상태, pageable);
-
-        return popularLectures.stream()
-                .map(lecture -> RecommendLectureDto.from(lecture))
-                .collect(Collectors.toList());
-    }
-
-    // 추천강좌 - 로그인
-    public List<RecommendLectureDto> getRecommendedLectures(int limit, String userCategory, String username) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "currentParticipants"));
-        List<LectureEntity> recommendedLectures = lectureRepository.findByCategoryAndStatusAndCreatorNotOrderByCurrentParticipantsDesc(userCategory, LectureEntity.LectureStatus.신청가능상태, username, pageable);
-
-        return recommendedLectures.stream()
-                .map(lecture -> RecommendLectureDto.from(lecture))
-                .collect(Collectors.toList());
     }
 
     private LectureDto convertToDto(LectureEntity lectureEntity) {
