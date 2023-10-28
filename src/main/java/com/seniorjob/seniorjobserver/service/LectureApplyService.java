@@ -128,6 +128,11 @@ public class LectureApplyService {
             return ResponseEntity.badRequest().body("이 강좌를 개설한 사용자만 모집을 마감할 수 있습니다.");
         }
 
+        // 신청모집마감은 “모집중 = 신청가능상태” 만 가능하다.
+        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
+            throw new RuntimeException("신청모집마감은 “모집중 = 신청가능상태” 만 가능합니다.");
+        }
+
         List<LectureApplyEntity> approvedApplicants = lectureApplyRepository.findByLectureAndLectureApplyStatus(lecture, LectureApplyEntity.LectureApplyStatus.승인);
 
         if (approvedApplicants.isEmpty()) {
