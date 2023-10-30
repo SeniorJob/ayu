@@ -44,8 +44,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/users/join", "/api/users/all", "/api/users/login",
                         "/api/lectures/all", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/search",
-                        "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list",
-                        "/api/lectureproposal/all", "/api/lectureproposal/detail/**", "/api/lectures/popular").permitAll()                .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
+                        "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list", "/api/lectureproposal/filter",
+                        "/api/lectureproposal/all", "/api/lectureproposal/detail/**", "/api/lectures/popular").permitAll()
+                .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
                         "/register", "/lecture/cancel-lecture-apply/**").permitAll()
                 .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/close", "/api/lectures/myLectureAll",
@@ -61,7 +62,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lecturesStepTwo/lectures/**/weeks/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review",
                         "/api/lecturesStepTwo/**/weeks/**/week-update", "/api/lecturesStepTwo/**/weeks/**/week-delete",
                         "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete",
-                        "/api/lectures/delete/**", "/api/lectures/recommendLecture"
+                        "/api/lectures/delete/**", "/api/lectures/recommendLecture", "/api/myProposalLecture/filter", "/api/myProposalLecture/myProposalDetail/"
                 ).authenticated()
                 .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
                         "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",
