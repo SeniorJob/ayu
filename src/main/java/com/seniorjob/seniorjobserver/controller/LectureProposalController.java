@@ -1,15 +1,16 @@
 package com.seniorjob.seniorjobserver.controller;
 
-import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
-import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
-import com.seniorjob.seniorjobserver.dto.LectureDto;
 import com.seniorjob.seniorjobserver.dto.LectureProposalDto;
 import com.seniorjob.seniorjobserver.repository.LectureProposalRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.LectureProposalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lectureproposal")
@@ -54,6 +57,80 @@ public class LectureProposalController {
     @GetMapping("/all")
     public List<LectureProposalDto> getAllProposals() {
         return lectureProposalService.getAllProposals();
+    }
+
+    // 제안강좌 - 전체목록(제목검색 + 정렬(최신순, 오래된순), 지역, 카테고리, 페이징) API
+    // 모든강좌조회 : /api/lectureProposal/filter?page=0&size=12&filter=latest&descending=true
+    @GetMapping("/filter")
+    public ResponseEntity<Page<LectureProposalDto>> getProposedLectures(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "filter", required = false, defaultValue = "true") String filter,
+            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(value = "descending", defaultValue = "true") boolean descending) {
+
+        if (title != null && title.length() < 2) {
+            throw new IllegalArgumentException("제목검색은 2자리 이상입력해주세요!");
+        }
+        if (region != null && region.length() < 2) {
+            throw new IllegalArgumentException("지역검색은 2자리 이상입력해주세요!");
+        }
+        if (category != null && category.length() < 2) {
+            throw new IllegalArgumentException("카테고리 검색은 2자리 이상입력해주세요!");
+        }
+
+        List<LectureProposalDto> proposedLectures = lectureProposalService.getAllProposals();
+
+        // 필터링: 제목 검색
+        if (title != null && !title.isEmpty()) {
+            proposedLectures = proposedLectures.stream()
+                    .filter(lectureProposal -> lectureProposal.getTitle().contains(title))
+                    .collect(Collectors.toList());
+        }
+
+        // 필터링: 지역
+        if (region != null && !region.isEmpty()) {
+            proposedLectures = proposedLectures.stream()
+                    .filter(lectureProposal -> lectureProposal.getRegion().contains(region))
+                    .collect(Collectors.toList());
+        }
+
+        // 필터링: 카테고리
+        if (category != null && !category.isEmpty()) {
+            proposedLectures = proposedLectures.stream()
+                    .filter(lectureProposal -> lectureProposal.getCategory().equalsIgnoreCase(category))
+                    .collect(Collectors.toList());
+        }
+
+        // 정렬
+        proposedLectures = sortLectures(proposedLectures, filter, descending);
+
+        if (proposedLectures.isEmpty()) {
+            throw new NoSuchElementException("검색결과에 해당하는 강좌제안이 없습니다.");
+        }
+
+        // 페이징
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), proposedLectures.size());
+        Page<LectureProposalDto> pagedLectureDto = new PageImpl<>(proposedLectures.subList(start, end), pageable, proposedLectures.size());
+        return ResponseEntity.ok(pagedLectureDto);
+    }
+
+    public List<LectureProposalDto> sortLectures(List<LectureProposalDto> lectureProposalList, String filter, boolean descending) {
+        switch (filter) {
+            case "latest":
+                lectureProposalList.sort((a, b) -> descending ?
+                        b.getCreateDate().compareTo(a.getCreateDate()) :
+                        a.getCreateDate().compareTo(b.getCreateDate()));
+                break;
+            // 추가적인 필터 조건은 여기에 추가
+            default:
+                throw new IllegalArgumentException("잘못된 필터조건");
+        }
+        return lectureProposalList;
     }
 
     // 강좌제안 상세보기API

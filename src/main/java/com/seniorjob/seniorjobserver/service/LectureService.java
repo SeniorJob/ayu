@@ -179,6 +179,7 @@ public class LectureService {
         LectureEntity updatedLecture = lectureRepository.save(existingLecture);
         return convertToDto(updatedLecture);
     }
+
     // 강좌1단계 개설 및 수정 데이터 유효성 검사 메소드
     private void validateLectureData(LectureDto lectureDto) {
         if (lectureDto.getCategory() == null || lectureDto.getCategory().trim().isEmpty()) {

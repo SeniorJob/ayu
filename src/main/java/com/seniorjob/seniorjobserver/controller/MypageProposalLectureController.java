@@ -1,11 +1,12 @@
 package com.seniorjob.seniorjobserver.controller;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
-import com.seniorjob.seniorjobserver.dto.LectureDto;
+import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.dto.LectureProposalDto;
 import com.seniorjob.seniorjobserver.dto.MypageLectureProposalDto;
-import com.seniorjob.seniorjobserver.repository.LectureRepository;
+import com.seniorjob.seniorjobserver.repository.LectureProposalRepository;
 import com.seniorjob.seniorjobserver.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -14,8 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -28,43 +27,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/myProposalLecture")
 public class MypageProposalLectureController {
-    private final LectureService lectureService;
-    private final StorageService storageService;
+    private final MyPageLectureProposalService myPageLectureProposalService;
     private final UserRepository userRepository;
-    private final LectureRepository lectureRepository;
-    private final UserService userService;
-    private static final Logger log = LoggerFactory.getLogger(LectureController.class);
-    private final LectureProposalService lectureProposalService;
-    private final LectureApplyService lectureApplyService;
+    private final LectureProposalRepository lectureProposalRepository;
 
-    public MypageProposalLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository ,
-                                           LectureProposalService lectureProposalService, LectureApplyService lectureApplyService) {
-        this.lectureService = lectureService;
-        this.storageService = storageService;
+    @Autowired
+    public MypageProposalLectureController(MyPageLectureProposalService myPageLectureProposalService, UserRepository userRepository, LectureProposalRepository lectureProposalRepository){
+        this.myPageLectureProposalService = myPageLectureProposalService;
         this.userRepository = userRepository;
-        this.userService = userService;
-        this.lectureRepository = lectureRepository;
-        this.lectureProposalService = lectureProposalService;
-        this.lectureApplyService = lectureApplyService;
+        this.lectureProposalRepository = lectureProposalRepository;
     }
-/*
-    // 세션로그인후 자신이 개설한 강좌제안 글 전체 조화 API(제안강좌)
-    @GetMapping("/myProposalAll")
-    public ResponseEntity<?> getMyProposalAll(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-        List<LectureProposalDto> myProposalAll = lectureProposalService.getMyProposalAll(currentUser.getUid());
 
-        if (myProposalAll.isEmpty()) {
-            return ResponseEntity.ok("제안된 강좌가 없습니다.");
-        }
-
-        return ResponseEntity.ok(myProposalAll);
-    }
-*/
-
-    // 세션로그인후 자신이 개설한 강좌 제안 상세보기 API (참여강좌)
+    // 마이페이지(제안강좌) - 세션로그인후 자신이 개설한 강좌 제안 상세보기 API (참여강좌)
     @GetMapping("/myProposalDetail/{id}")
     public ResponseEntity<LectureProposalDto> getMyProposalDetail(
             @PathVariable("id") Long proposalId,
@@ -74,17 +48,22 @@ public class MypageProposalLectureController {
             UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-            LectureProposalDto proposalDto = lectureProposalService.getMyProposalDetail(proposalId);
+            // 현재 사용자가 강좌제안의 생성자인지 확인
+            LectureProposalEntity lectureProposalEntity = lectureProposalRepository.findById(proposalId)
+                    .orElseThrow(() -> new RuntimeException("강좌제안 아이디 찾지못함 create_id: " + proposalId));
+            if (!lectureProposalEntity.getUser().equals(currentUser)) {
+                throw new RuntimeException("해당 강좌제안를 확인할 권한이 없습니다.");
+            }
+            LectureProposalDto proposalDto = myPageLectureProposalService.getMyProposalDetail(proposalId);
             return ResponseEntity.ok(proposalDto);
         } catch (ResponseStatusException ex) {
-            // NOT_FOUND 예외가 발생한 경우
+
             return ResponseEntity.status(ex.getStatus()).body(null);
         }
     }
 
-    // 세션로그인후 자신이 개설한 강좌제안 글 전체 조회 API(제안강좌)
-    // api/myProposalLecture/filter == 모든강좌조회
-    // api/myProposalLecture/filter?page=0&size=12&title="강좌제목"&filter=latest&descending=true == 페이징 + 제목검색 + 최신순 오래된순
+    // 마이페이지(제안강좌) - 세션로그인후 자신이 개설한 강좌제안 글 전체 조회 API
+    // 모든강좌조회 : /api/myProposalLecture/filter?page=0&size=12&filter=latest&descending=true
     @GetMapping("/filter")
     public ResponseEntity<Page<MypageLectureProposalDto>> getMyProposedLectures(
             @RequestParam(value = "title", required = false) String title,
@@ -97,7 +76,7 @@ public class MypageProposalLectureController {
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-        List<MypageLectureProposalDto> myProposedLectures = lectureProposalService.getMyProposalAll(currentUser.getUid());
+        List<MypageLectureProposalDto> myProposedLectures = myPageLectureProposalService.getMyProposalAll(currentUser.getUid());
 
         // 필터링: 제목 검색
         if (title != null && !title.isEmpty()) {
@@ -108,7 +87,7 @@ public class MypageProposalLectureController {
 
         // 필터링: 조건에 따라 강좌 리스트 필터링
         if (filter != null && !filter.isEmpty()) {
-            myProposedLectures = lectureProposalService.filterLectures(myProposedLectures, filter, descending);
+            myProposedLectures = myPageLectureProposalService.filterLectures(myProposedLectures, filter, descending);
         }
 
 
@@ -123,5 +102,4 @@ public class MypageProposalLectureController {
         Page<MypageLectureProposalDto> pagedLectureDto = new PageImpl<>(myProposedLectures.subList(start, end), pageable, myProposedLectures.size());
         return ResponseEntity.ok(pagedLectureDto);
     }
-
 }
