@@ -218,7 +218,7 @@ public class LectureController {
 			@RequestParam(value = "category", required = false) String category,
 			@RequestParam(defaultValue = "0", name = "page") int page,
 			@RequestParam(defaultValue = "12", name = "size") int size,
-			@RequestParam(value = "descending", defaultValue = "false") boolean descending) {
+			@RequestParam(value = "descending", defaultValue = "true") boolean descending) {
 
 		List<LectureDto> lectureList = new ArrayList<>();
 

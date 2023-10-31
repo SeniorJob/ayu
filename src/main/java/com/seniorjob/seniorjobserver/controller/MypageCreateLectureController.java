@@ -2,10 +2,7 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
-import com.seniorjob.seniorjobserver.dto.CreateLectureFullInfoDto;
-import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
-import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
-import com.seniorjob.seniorjobserver.dto.LectureDto;
+import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.*;
@@ -15,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -70,8 +68,8 @@ public class MypageCreateLectureController {
         return ResponseEntity.ok(myLectureAll);
     }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 강좌 상세보기API
-    @GetMapping("/myCreateLectureAlls/{lectureId}")
+    // 마이페이지(개설강좌) - 자신이 개설한강좌 상세보기API
+    @GetMapping("/myCreateLectureDetail/{lectureId}")
     public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
             @PathVariable Long lectureId,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -88,16 +86,14 @@ public class MypageCreateLectureController {
 
             LectureDetailDto mypageFullInfo = mypageService.getMypageInfo(lectureId);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("lectureDetails", mypageFullInfo);
+            return ResponseEntity.ok(mypageFullInfo);  // Return the DTO directly instead of wrapping it inside a Map
 
-            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // 세션로그인 후 자신이 개설한 강좌 글 전체보기 + 필터링 API
+    // 마이페이지(개설강좌) - 세션로그인 후 자신이 개설한 강좌 글 전체보기 + 필터링 API
     // api/mypageCreateLecture/filter == 모든강좌조회
     // api/mypageCreateLecture/filter?title="강좌제목" == 제목만으로 검색
 

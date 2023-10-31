@@ -28,5 +28,6 @@ public interface LectureApplyRepository extends JpaRepository<LectureApplyEntity
     void deleteByUser(UserEntity user);
 
     void deleteByLecture(LectureEntity lecture);
+
 }
 

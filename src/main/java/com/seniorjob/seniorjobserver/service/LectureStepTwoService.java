@@ -247,6 +247,7 @@ public class LectureStepTwoService {
                 .bank_name(lecture.getBank_name())
                 .account_name(lecture.getAccount_name())
                 .account_number(lecture.getAccount_number())
+                .status(lecture.getStatus())
                 .price(lecture.getPrice())
                 .title(lecture.getTitle())
                 .content(lecture.getContent())

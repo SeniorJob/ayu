@@ -4,13 +4,13 @@ import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
-import com.seniorjob.seniorjobserver.dto.CreateLectureFullInfoDto;
-import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
+import com.seniorjob.seniorjobserver.dto.*;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/mypageApplyLecture") // 신청강좌
+@RequestMapping("/api/mypageApplyLecture")
 public class MypageApplyLectureController {
     private final LectureService lectureService;
     private final StorageService storageService;
@@ -35,11 +35,13 @@ public class MypageApplyLectureController {
     private static final Logger log = LoggerFactory.getLogger(LectureController.class);
     private final LectureProposalService lectureProposalService;
     private final LectureApplyService lectureApplyService;
-
     private final LectureStepTwoService lectureStepTwoService;
+    private final MyPageLectureApplyService myPageLectureApplyService;
+    private final MypageService mypageService;
 
     public MypageApplyLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository,
-                                        LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService) {
+                                        LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService,
+                                        MyPageLectureApplyService myPageLectureApplyService, MypageService mypageService) {
         this.lectureService = lectureService;
         this.storageService = storageService;
         this.userRepository = userRepository;
@@ -48,9 +50,11 @@ public class MypageApplyLectureController {
         this.lectureProposalService = lectureProposalService;
         this.lectureApplyService = lectureApplyService;
         this.lectureStepTwoService = lectureStepTwoService;
+        this.myPageLectureApplyService = myPageLectureApplyService;
+        this.mypageService = mypageService;
     }
 
-    // 세션로그인후 자신이 신청한 강좌 전체 조화 API (신청강좌)
+    // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 API
     @GetMapping("/myApplyLectureAll")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMyAppliedLectures(@AuthenticationPrincipal UserDetails userDetails) {
@@ -60,6 +64,30 @@ public class MypageApplyLectureController {
 
             List<LectureApplyDto> myAppliedLectures = lectureApplyService.getMyAppliedLectures(currentUser.getUid());
             return ResponseEntity.ok(myAppliedLectures);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 필터링API
+    // 필터링 : 제목 + 강좌상태 + 정렬(최신순, 오래된순, 인기순, 가격높은순, 가격낮은순)
+    @GetMapping("/filter")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getMyAppliedLecturesWithFilter(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "status", required = false) LectureEntity.LectureStatus status,
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(value = "descending", defaultValue = "true") boolean descending,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+            Page<MyPageLectureApplyDto> myFilteredAppliedLectures = myPageLectureApplyService.getFilteredMyAppliedLectures(currentUser.getUid(), title, status, filter, page, size);
+            return ResponseEntity.ok(myFilteredAppliedLectures);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -110,35 +138,23 @@ public class MypageApplyLectureController {
         }
     }
 
-
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Controller
-    @GetMapping("/myApplyLectureAlls/{lectureId}")
-    public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
+    // 마이페이지(신청강좌) - 자신이 신청한 강좌 상세보기
+    @GetMapping("/myAppliedLectureDetail/{lectureId}")
+    public ResponseEntity<?> getMyAppliedLectureDetails(
             @PathVariable Long lectureId,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-            // 현재 사용자가 강좌의 생성자인지 확인
-            LectureEntity lectureEntity = lectureRepository.findById(lectureId)
-                    .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + lectureId));
-            if (!lectureEntity.getUser().equals(currentUser)) {
-                throw new RuntimeException("해당 강좌를 확인할 권한이 없습니다.");
-            }
+            MyPageLectureApplyDetailDto lectureDetails = myPageLectureApplyService.getMyAppliedLectureDetail(currentUser.getUid(), lectureId);
 
-            CreateLectureFullInfoDto lectureFullInfo = lectureStepTwoService.getFullLectureInfo(lectureId);
-            List<LectureApplyDto> myAppliedLectures = lectureApplyService.getMyAppliedLectures(currentUser.getUid());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("lectureDetails", lectureFullInfo);
-            response.put("myAppliedLectures", myAppliedLectures);
-
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
+            return ResponseEntity.ok(lectureDetails);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
+
 
 

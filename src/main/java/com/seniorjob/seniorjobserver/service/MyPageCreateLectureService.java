@@ -48,6 +48,14 @@ public class MyPageCreateLectureService {
         return myLectureAll.stream().map(MyPageCreateLectureDto::new).collect(Collectors.toList());
     }
 
+    // 마이페이지(개설강좌) - 강좌 상세보기
+    public MyPageCreateLectureDto getLectureDetail(Long lectureId) {
+        LectureEntity lectureEntity = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new NoSuchElementException("강좌 아이디를 찾을 수 없습니다. lectureId: " + lectureId));
+        return new MyPageCreateLectureDto(lectureEntity);
+    }
+
+
     // 마이페이지(개설강좌) - 목록 필터링
 
     // 강좌ID기반 강좌상태 가져오는 메서드
