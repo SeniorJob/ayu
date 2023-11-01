@@ -79,8 +79,8 @@ public class UserController {
     // 회원가입API with 암호화 세션//
     @PostMapping("/join")
     public ResponseEntity<?> registerUser(
-            @RequestParam("userDto") String userDtoJson,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("userDto") String userDtoJson){
+            //@RequestParam("file") MultipartFile file)
         try {
             UserDto userDto = objectMapper.readValue(userDtoJson, UserDto.class);
 
@@ -115,8 +115,8 @@ public class UserController {
                 return ResponseEntity.badRequest().body("전화번호는 앞 3자리를 포함하여 11자리를 입력해주세요!");
             }
 
-            String imageUrl = storageService.uploadImage(file);
-            userDto.setImgKey(imageUrl);
+//            String imageUrl = storageService.uploadImage(file);
+//            userDto.setImgKey(imageUrl);
             userDto.setCreateDate(LocalDateTime.now());
 
             UserEntity userEntity = userService.createUser(userDto);
