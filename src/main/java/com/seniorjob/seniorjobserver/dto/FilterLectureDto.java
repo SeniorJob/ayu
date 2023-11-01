@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Getter
 @Setter
@@ -31,6 +32,20 @@ public class FilterLectureDto {
     private LocalDateTime start_date;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime end_date;
+
+    // 모집 마감까지 남은 일
+    public String getDaysUntilRecruitEndMessage() {
+
+        if (status != LectureEntity.LectureStatus.신청가능상태){
+            return null;
+        }
+        if(recruitEnd_date == null){
+            return "모집 마감일이 설정되지 않았습니다.";
+        }
+        LocalDateTime now = LocalDateTime.now();
+        int days = (int) ChronoUnit.DAYS.between(now, recruitEnd_date);
+        return "모집 마감까지 " + days + "일 남았습니다!";
+    }
     private Integer max_participants;
     private Integer current_participants;
     private String region;
