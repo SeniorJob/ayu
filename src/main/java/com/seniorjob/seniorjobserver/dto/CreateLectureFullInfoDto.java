@@ -23,7 +23,7 @@ public class CreateLectureFullInfoDto {
     // user, status, recruitmentClosed 제외
     private List<WeekDto> weekDto; // 강좌개설 2단계 주차별 제목
     private List<WeekPlanDto> weekPlanDto; // 강좌개설 2단계 주차별 상세내용
-    private  AttendanceDto attendanceDto; // 강좌개설 2단계 수료조건 출석 회수 설정
+    //private  AttendanceDto attendanceDto; // 강좌개설 2단계 수료조건 출석 회수 설정
 
     // 모집 마감까지 남은 일
     public String getDaysUntilRecruitEndMessage() {

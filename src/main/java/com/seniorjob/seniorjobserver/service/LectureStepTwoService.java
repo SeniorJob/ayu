@@ -137,12 +137,12 @@ public class LectureStepTwoService {
                 .collect(Collectors.toList());
 
         // 강좌개설2단계 : 출석 조건 정보 가져오기
-        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
-                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
-        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
+//        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
+//                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
+//        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
 
         // 최종적으로 모든 정보를 하나의 DTO에 담아 반환
-        return new CreateLectureFullInfoDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
+        return new CreateLectureFullInfoDto(lectureDto, weekDtos, weekPlanDtos);
     }
 
     // 1. weekTitle수정 Service

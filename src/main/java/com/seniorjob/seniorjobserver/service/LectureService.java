@@ -285,11 +285,11 @@ public class LectureService {
             throw new RuntimeException("개설중인 강좌입니다. (주차상세정보가 없습니다.");
         }
 
-        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lectureEntity)
-                .orElseThrow(() -> new RuntimeException("개설중인 강좌입니다. (출석 정보가 없습니다)"));
-        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
+//        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lectureEntity)
+//                .orElseThrow(() -> new RuntimeException("개설중인 강좌입니다. (출석 정보가 없습니다)"));
+//        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
 
-        return new LectureDetailDto(lectureDto, weekDtos, weekPlanDtos, attendanceDto);
+        return new LectureDetailDto(lectureDto, weekDtos, weekPlanDtos);
     }
 
     // 세션로그인후 자신이 개설한 강좌목록 전체조회
