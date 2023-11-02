@@ -344,5 +344,4 @@ public class LectureController {
 				.createdDate(lectureEntity.getCreatedDate())
 				.build();
 	}
-
 }
