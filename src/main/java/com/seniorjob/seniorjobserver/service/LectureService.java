@@ -8,7 +8,6 @@ import com.seniorjob.seniorjobserver.domain.entity.LectureEntity.LectureStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import javax.transaction.Transactional;
 import java.time.ZoneId;
