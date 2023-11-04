@@ -21,9 +21,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 @SpringBootApplication
 @Configuration
@@ -70,6 +74,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/lecture/lectureCreate3").authenticated()
                 .anyRequest().authenticated()
                 .and()
+                .cors().configurationSource(corsConfigurationSource()).and()
                 .formLogin()
                 .loginPage("/login")
                 .defaultSuccessUrl("/main")
@@ -126,6 +131,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         e.printStackTrace();
                     }
                 });
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 
     @Override
