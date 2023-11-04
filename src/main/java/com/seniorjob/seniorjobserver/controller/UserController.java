@@ -154,11 +154,10 @@ public class UserController {
                 new UsernamePasswordAuthenticationToken(phoneNumber, password);
 
         try {
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                     .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. 회원가입을 진행해주세요!"));
-
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");

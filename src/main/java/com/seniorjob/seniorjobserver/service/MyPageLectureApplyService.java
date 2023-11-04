@@ -25,18 +25,17 @@ public class MyPageLectureApplyService {
     private final UserRepository userRepository;
     private final WeekRepository weekRepository;
     private final WeekPlanRepository weekPlanRepository;
-    private final AttendanceRepository attendanceRepository;
+    //private final AttendanceRepository attendanceRepository;
 
     @Autowired
     public MyPageLectureApplyService(UserRepository userRepository, LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository,
-                                     WeekRepository weekRepository, WeekPlanRepository weekPlanRepository,
-                                     AttendanceRepository attendanceRepository) {
+                                     WeekRepository weekRepository, WeekPlanRepository weekPlanRepository) {
         this.userRepository = userRepository;
         this.lectureRepository = lectureRepository;
         this.lectureApplyRepository = lectureApplyRepository;
         this.weekRepository = weekRepository;
         this.weekPlanRepository = weekPlanRepository;
-        this.attendanceRepository = attendanceRepository;
+        //this.attendanceRepository = attendanceRepository;
     }
 
     public LectureApplyDto getLectureApplyById(Long id) {
@@ -164,12 +163,12 @@ public class MyPageLectureApplyService {
                 .collect(Collectors.toList());
 
         // 5. 출석 조건 정보 조회
-        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lectureEntity)
-                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
-        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
+//        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lectureEntity)
+//                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
+//        AttendanceDto attendanceDto = new AttendanceDto(attendanceEntity);
 
         // 모든 정보를 DTO에 담아 반환
-        return new MyPageLectureApplyDetailDto(lectureApplyDto, lectureDto, weekDtos, weekPlanDtos, attendanceDto);
+        return new MyPageLectureApplyDetailDto(lectureApplyDto, lectureDto, weekDtos, weekPlanDtos);
     }
 
     private LectureDto convertToDto(LectureEntity lectureEntity) {
