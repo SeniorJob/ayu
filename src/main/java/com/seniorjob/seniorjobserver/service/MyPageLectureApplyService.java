@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Comparator;
 import java.util.List;
@@ -96,9 +97,17 @@ public class MyPageLectureApplyService {
 
         // 제목 필터링
         if (title != null && !title.isEmpty()) {
-            lectureApplyDtos = lectureApplyDtos.stream()
-                    .filter(lecture -> lecture.getTitle().contains(title))
-                    .collect(Collectors.toList());
+            if (title.length() >= 2) { // 2글자 이상인 경우에만 검색 수행
+                lectureApplyDtos = lectureApplyDtos.stream()
+                        .filter(lecture -> lecture.getTitle().contains(title))
+                        .collect(Collectors.toList());
+
+                if (lectureApplyDtos.isEmpty()) {
+                    throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.ㅠㅠ");
+                }
+            } else {
+                throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
+            }
         }
 
         // 상태 필터링
