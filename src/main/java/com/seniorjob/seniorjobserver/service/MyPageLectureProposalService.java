@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,7 +59,21 @@ public class MyPageLectureProposalService {
                 throw new IllegalArgumentException("잘못된 필터조건");
         }
     }
+    public List<MypageLectureProposalDto> filterLecturesByTitle(List<MypageLectureProposalDto> lectureProposalList, String title) {
+        if (title.length() >= 2) {
+            List<MypageLectureProposalDto> filteredLectures = lectureProposalList.stream()
+                    .filter(lecture -> lecture.getTitle().contains(title))
+                    .collect(Collectors.toList());
 
+            if (filteredLectures.isEmpty()) {
+                throw new NoSuchElementException("검색결과에 해당하는 강좌제안이 없습니다.ㅠㅠ");
+            }
+
+            return filteredLectures;
+        } else {
+            throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
+        }
+    }
     // 강좌정렬
     // 최신순으로 강좌 정렬 최신 = true 오래된 = false
     public List<MypageLectureProposalDto> sortLecturesByCreatedDate(List<MypageLectureProposalDto> lectureProposalList, boolean descending) {

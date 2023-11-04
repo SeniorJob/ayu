@@ -104,7 +104,7 @@ public class MypageCreateLectureController {
             @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "category", required = false) String category,
-            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "12", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "false") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -117,7 +117,7 @@ public class MypageCreateLectureController {
 
         // 필터링: 제목 검색
         if (title != null && !title.isEmpty()) {
-            myLectureAll = lectureService.searchLecturesByTitle(title);
+            myLectureAll = lectureService.searchLecturesByTitle(myLectureAll ,title);
         }
 
         // 필터링: 조건에 따라 lectureList 필터링
@@ -164,7 +164,7 @@ public class MypageCreateLectureController {
         }
 
         // 페이징
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page -1, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), myLectureAll.size());
         Page<LectureDto> pagedLectureDto = new PageImpl<>(myLectureAll.subList(start, end), pageable, myLectureAll.size());

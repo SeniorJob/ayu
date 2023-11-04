@@ -336,6 +336,22 @@ public class LectureService {
         return lectureList;
     }
 
+    public List<LectureDto> searchLecturesByTitle(List<LectureDto> myLectureAll, String title) {
+        if (title.length() < 2) {
+            throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
+        }
+
+        List<LectureDto> filteredLectures = myLectureAll.stream()
+                .filter(lecture -> lecture.getTitle().contains(title))
+                .collect(Collectors.toList());
+
+        if (filteredLectures.isEmpty()) {
+            throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.ㅠㅠ");
+        }
+
+        return filteredLectures;
+    }
+
     // 강좌정렬
     // 최신순으로 강좌 정렬 최신 = true 오래된 = false
     public List<LectureDto> sortLecturesByCreatedDate(List<LectureDto> lectureList, boolean descending) {

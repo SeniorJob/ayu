@@ -77,7 +77,7 @@ public class MypageApplyLectureController {
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "status", required = false) LectureEntity.LectureStatus status,
             @RequestParam(value = "filter", required = false) String filter,
-            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "12", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "true") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {

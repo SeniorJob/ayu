@@ -68,7 +68,7 @@ public class MypageProposalLectureController {
     public ResponseEntity<Page<MypageLectureProposalDto>> getMyProposedLectures(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "filter", required = false) String filter,
-            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "12", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "false") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -80,9 +80,7 @@ public class MypageProposalLectureController {
 
         // 필터링: 제목 검색
         if (title != null && !title.isEmpty()) {
-            myProposedLectures = myProposedLectures.stream()
-                    .filter(lecture -> lecture.getTitle().contains(title))
-                    .collect(Collectors.toList());
+            myProposedLectures = myPageLectureProposalService.filterLecturesByTitle(myProposedLectures, title);
         }
 
         // 필터링: 조건에 따라 강좌 리스트 필터링
@@ -96,7 +94,7 @@ public class MypageProposalLectureController {
         }
 
         // 페이징
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page-1, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), myProposedLectures.size());
         Page<MypageLectureProposalDto> pagedLectureDto = new PageImpl<>(myProposedLectures.subList(start, end), pageable, myProposedLectures.size());
