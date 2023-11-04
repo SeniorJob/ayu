@@ -216,7 +216,7 @@ public class LectureController {
 			@RequestParam(value = "region", required = false) String region,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "category", required = false) String category,
-			@RequestParam(defaultValue = "0", name = "page") int page,
+			@RequestParam(defaultValue = "1", name = "page") int page,
 			@RequestParam(defaultValue = "12", name = "size") int size,
 			@RequestParam(value = "descending", defaultValue = "true") boolean descending) {
 
@@ -274,7 +274,8 @@ public class LectureController {
 		}
 
 		// 페이징
-		Pageable pageable = PageRequest.of(page, size);
+		int zeroBasedPage = page -1;
+		Pageable pageable = PageRequest.of(zeroBasedPage, size);
 		int start = (int) pageable.getOffset();
 		int end = Math.min((start + pageable.getPageSize()), lectureList.size());
 		List<FilterLectureDto> filteredLectureList = lectureList.stream()
