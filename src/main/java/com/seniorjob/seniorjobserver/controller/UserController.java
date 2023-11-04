@@ -2,6 +2,7 @@ package com.seniorjob.seniorjobserver.controller;
 
 import antlr.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seniorjob.seniorjobserver.config.CookieUtil;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
@@ -32,6 +33,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -143,29 +147,44 @@ public class UserController {
     // 세션 로그인
     // POST /api/users/login
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) {
         String phoneNumber = loginRequest.getPhoneNumber();
         String password = loginRequest.getPassword();
+
         if (phoneNumber == null || password == null || phoneNumber.trim().isEmpty() || password.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("아이디와 비밀번호를 입력해주세요");
         }
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(phoneNumber, password);
-
         try {
-            UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
-                    .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다. 회원가입을 진행해주세요!"));
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserEntity user = userService.authenticate(phoneNumber, password);
+            HttpSession session = request.getSession(true);
+            CookieUtil.addCookie(response, "SESSIONID", session.getId(), 24 * 60 * 60);
+
             return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("계정을 찾을 수 없습니다.");
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러가 발생하였습니다. 관리자에게 문의해주세요");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그인 처리 중 오류가 발생했습니다.");
         }
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneralError(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("내부 서버 오류: " + e.getMessage());
     }
 
     // 세션 로그아웃
