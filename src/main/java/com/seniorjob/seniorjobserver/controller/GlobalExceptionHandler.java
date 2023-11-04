@@ -2,6 +2,7 @@ package com.seniorjob.seniorjobserver.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -29,7 +30,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     private ResponseEntity<Object> buildResponseEntity(ApiError apiError){
         return new ResponseEntity<>(apiError, apiError.getStatus());
