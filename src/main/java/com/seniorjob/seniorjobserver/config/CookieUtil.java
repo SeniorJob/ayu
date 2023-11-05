@@ -7,12 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 public class CookieUtil {
 
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
+        ResponseCookie cookie = ResponseCookie.from(name, "")
                 .path("/")
                 .sameSite("None")
                 .httpOnly(true)
-                .secure(true)
-                .maxAge(maxAge)
+                .secure(false)
+                .maxAge(0)
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
