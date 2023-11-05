@@ -8,55 +8,78 @@
 <h2>로그인 테스트</h2>
 <button id="login">로그인</button>
 <button id="getUserDetails" disabled>회원정보상세</button>
+<button id="logout" disabled>로그아웃</button>
 
 <script>
-        document.getElementById('login').onclick = function() {
-            const loginData = {
-                phoneNumber: '01011111111', // 실제 사용자 번호
-                password: 'aaaaaa1' // 실제 비밀번호
-            };
+    const loginData = {
+        phoneNumber: '01011111111', // 실제 사용자 번호
+        password: 'aaaaaa1' // 실제 비밀번호
+    };
 
-            fetch('http://localhost:8080/api/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include', // CORS 요청 시 쿠키/인증 정보
-                body: JSON.stringify(loginData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Login failed');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Login successful:', data);
-                document.getElementById('getUserDetails').disabled = false;
-            })
-            .catch(error => {
-                console.error('Error during login:', error);
-            });
-        };
+    document.getElementById('login').onclick = function() {
+        fetch('http://localhost:8080/api/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include', // CORS 요청 시 쿠키/인증 정보
+            body: JSON.stringify(loginData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Login successful:', data);
+            document.getElementById('getUserDetails').disabled = false;
+            document.getElementById('logout').disabled = false;
+        })
+        .catch(error => {
+            console.error('Error during login:', error);
+        });
+    };
 
-        document.getElementById('getUserDetails').onclick = function() {
-            fetch('http://localhost:8080/api/users/detail', {
-                method: 'GET',
-                credentials: 'include' // 쿠키/세션을 포함
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user details');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('User details:', data);
-            })
-            .catch(error => {
-                console.error('Error fetching user details:', error);
-            });
-        };
-    </script>
+    document.getElementById('getUserDetails').onclick = function() {
+        fetch('http://localhost:8080/api/users/detail', {
+            method: 'GET',
+            credentials: 'include' // 쿠키/세션을 포함
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user details');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User details:', data);
+        })
+        .catch(error => {
+            console.error('Error fetching user details:', error);
+        });
+    };
+
+    document.getElementById('logout').onclick = function() {
+        fetch('http://localhost:8080/api/users/logout', {
+            method: 'POST',
+            credentials: 'include' // 쿠키/세션을 포함하여 요청
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Logout failed');
+            }
+            return response.text(); // 로그아웃 응답이 텍스트일 경우
+        })
+        .then(message => {
+            console.log('Logout successful:', message);
+            document.getElementById('getUserDetails').disabled = true;
+            document.getElementById('logout').disabled = true;
+        })
+        .catch(error => {
+            console.error('Error during logout:', error);
+        });
+    };
+</script>
 </body>
 </html>
