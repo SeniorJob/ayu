@@ -162,7 +162,9 @@ public class UserController {
             HttpSession session = request.getSession(true);
             CookieUtil.addCookie(response, "SESSIONID", session.getId(), 24 * 60 * 60);
 
-            return ResponseEntity.ok(user.getName() + " 회원님 로그인에 성공하였습니다");
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("message", user.getName() + " 회원님 로그인에 성공하였습니다");
+            return ResponseEntity.ok(responseBody);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("계정을 찾을 수 없습니다.");
         } catch (BadCredentialsException e) {
