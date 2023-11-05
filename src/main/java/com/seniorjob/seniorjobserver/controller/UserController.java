@@ -15,6 +15,7 @@ import com.seniorjob.seniorjobserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -191,6 +192,17 @@ public class UserController {
 
     // 세션 로그아웃
     // POST /api/users/logout
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        CookieUtil.clearCookie(response, "SESSIONID");
+        CookieUtil.clearCookie(response, "JSESSIONID");
+        return ResponseEntity.ok("로그아웃에 성공하였습니다.");
+    }
 
     // 회원전체목록API
     // GET /api/users/all
