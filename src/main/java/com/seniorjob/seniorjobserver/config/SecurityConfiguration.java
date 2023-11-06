@@ -130,14 +130,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    CookieUtil.clearCookie(response, "SESSIONID");
+                    CookieUtil.clearCookie(response, "JSESSIONID");
                 });
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:63342"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

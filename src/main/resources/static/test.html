@@ -41,24 +41,25 @@
         });
     };
 
-    document.getElementById('getUserDetails').onclick = function() {
-        fetch('http://localhost:8080/api/users/detail', {
-            method: 'GET',
-            credentials: 'include' // 쿠키/세션을 포함
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch user details');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('User details:', data);
-        })
-        .catch(error => {
-            console.error('Error fetching user details:', error);
+    document.getElementById('getUserDetails').addEventListener('click', function() {
+            fetch('http://localhost:8080/api/users/detail', {
+                method: 'GET',
+                credentials: 'include' // to ensure cookies are sent
+            })
+            .then(response => {
+                if(response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to validate session');
+                }
+            })
+            .then(data => {
+                console.log('API call successful with session:', data);
+            })
+            .catch(error => {
+                console.error('Error with API call:', error);
+            });
         });
-    };
 
     document.getElementById('logout').onclick = function() {
         fetch('http://localhost:8080/api/users/logout', {

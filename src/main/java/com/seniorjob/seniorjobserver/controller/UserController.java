@@ -161,7 +161,6 @@ public class UserController {
         try {
             UserEntity user = userService.authenticate(phoneNumber, password);
             HttpSession session = request.getSession(true);
-            CookieUtil.addCookie(response, "SESSIONID", session.getId(), 24 * 60 * 60);
 
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("message", user.getName() + " 회원님 로그인에 성공하였습니다");
@@ -199,7 +198,6 @@ public class UserController {
             session.invalidate();
         }
 
-        CookieUtil.clearCookie(response, "SESSIONID");
         CookieUtil.clearCookie(response, "JSESSIONID");
         return ResponseEntity.ok("로그아웃에 성공하였습니다.");
     }
