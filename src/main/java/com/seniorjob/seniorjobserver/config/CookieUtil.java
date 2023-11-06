@@ -10,7 +10,7 @@ public class CookieUtil {
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .httpOnly(true)
                 .secure(false) // HTTPS일때는 true
                 .maxAge(maxAge)
@@ -23,7 +23,7 @@ public class CookieUtil {
     public static void clearCookie(HttpServletResponse response, String name) {
         ResponseCookie cookie = ResponseCookie.from(name, "")
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .httpOnly(true)
                 .secure(false)
                 .maxAge(0)
