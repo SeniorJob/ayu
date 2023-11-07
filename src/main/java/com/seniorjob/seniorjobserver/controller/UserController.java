@@ -119,7 +119,7 @@ public class UserController {
 
     // 로그인된 회원정보api
     // GET /api/users/detail
-    @GetMapping("/detail")
+    @PostMapping("/detail")
     public ResponseEntity<?> getUserDetails() {
         try {
             // SecurityContext에서 인증 정보를 가져와 UserService에 전달

@@ -15,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -31,6 +32,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -49,14 +52,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 // 로그인, 회원가입 등 토큰이 없는 상태에서 요청이 들어오는 api는 permitAll설정
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/users/**", "/api/auth/logout").permitAll() // 로그인과 로그아웃은 모두에게 허용
+                .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**",
+                "/api/lectures/filter").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail", "api/users/update").hasRole("USER")
+                .antMatchers("/api/users/detail", "api/users/update", "/api/lectures/**",
+                        "/api/lectures/delete/**").hasRole("USER")
                 .anyRequest().authenticated()
 
-                .and();
-                // JwtFilter
+                // JwtFilter를 addFilterBefore로 등록
+                .and()
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     private static final String[] AUTH_WHITELIST = {
