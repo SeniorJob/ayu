@@ -35,7 +35,6 @@ public class UserService {
     }
 
     // 회원가입 encryption_code = 비밀번호 암호화
-    // 회원가입 encryption_code = 비밀번호 암호화
     public UserEntity createUser(UserDto userDto) {
         if (existsByPhoneNumber(userDto.getPhoneNumber())) {
             throw new IllegalStateException("이미 가입된 전화번호입니다.");
@@ -90,10 +89,10 @@ public class UserService {
 
         // JWT 토큰 생성 및 로그인 응답 반환
         String token = jwtTokenProvider.createToken(userDto.getPhoneNumber(), Collections.emptyList());
-        return new LoginResponse(token, userEntity.getName() + "님이 로그인에 성공하였습니다.");
+        Date tokenExpirationDate = jwtTokenProvider.getExpirationDateFromToken(token);
+
+        return new LoginResponse(token, userEntity.getName() + "님이 로그인에 성공하였습니다.", tokenExpirationDate);
     }
-
-
 
     // 회원 전체목록
 //    public List<UserDetailDto> getAllUsers() {
@@ -119,21 +118,6 @@ public class UserService {
         return convertToUserDetailDto(userEntity);
     }
 
-//    public UserDetailDto getLoggedInUserDetails(){
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String userName = authentication.getName();
-//
-//        // 로그인 되지 않았을 경우
-//        if ("anonymousUser".equals(userName)) {
-//            throw new IllegalStateException("로그인을 해주세요!");
-//        }
-//
-//        UserEntity userEntity = userRepository.findByPhoneNumber(userName)
-//                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다.."));
-//        UserDetailDto userDetailDto = convertToUserDetailDto(userEntity);
-//        return userDetailDto;
-//    }
-
     // 회원정보 수정
     public UserDetailDto updateUser(UserDetailDto userDetailDto){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -145,10 +129,10 @@ public class UserService {
         }
 
         // 모든 필드 체크
-        if(userDetailDto.getName() == null || userDetailDto.getDateOfBirth() == null ||
-                userDetailDto.getJob() == null || userDetailDto.getRegion() == null ||
-                userDetailDto.getCategory() == null) {
-            throw new IllegalArgumentException("5개 항목을 모두 입력해주세요!");
+        if (!StringUtils.hasText(userDetailDto.getName()) || userDetailDto.getDateOfBirth() == null ||
+                !StringUtils.hasText(userDetailDto.getJob()) || !StringUtils.hasText(userDetailDto.getRegion()) ||
+                !StringUtils.hasText(userDetailDto.getCategory())) {
+            throw new IllegalArgumentException("모든 필수 항목을 입력해주세요!");
         }
 
         UserEntity userEntity = userRepository.findByPhoneNumber(userName)

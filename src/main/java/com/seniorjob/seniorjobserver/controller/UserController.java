@@ -102,63 +102,6 @@ public class UserController {
         }
     }
 
-    // 세션 로그인
-    // POST /api/users/login
-//    @PostMapping("/login")
-//    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest,
-//                                       HttpServletRequest request,
-//                                       HttpServletResponse response) {
-//        String phoneNumber = loginRequest.getPhoneNumber();
-//        String password = loginRequest.getPassword();
-//
-//        if (phoneNumber == null || password == null || phoneNumber.trim().isEmpty() || password.trim().isEmpty()) {
-//            return ResponseEntity.badRequest().body("아이디와 비밀번호를 입력해주세요");
-//        }
-//
-//        try {
-//            UserEntity user = userService.authenticate(phoneNumber, password);
-//            HttpSession session = request.getSession(true);
-//
-//            Map<String, String> responseBody = new HashMap<>();
-//            responseBody.put("message", user.getName() + " 회원님 로그인에 성공하였습니다");
-//            return ResponseEntity.ok(responseBody);
-//        } catch (UsernameNotFoundException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("계정을 찾을 수 없습니다.");
-//        } catch (BadCredentialsException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그인 처리 중 오류가 발생했습니다.");
-//        }
-//    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<?> handleBadCredentials(BadCredentialsException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
-    }
-
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGeneralError(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("내부 서버 오류: " + e.getMessage());
-    }
-
-    // 세션 로그아웃
-    // POST /api/users/logout
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-//        HttpSession session = request.getSession(false);
-//        if (session != null) {
-//            session.invalidate();
-//        }
-//
-//        CookieUtil.clearCookie(response, "JSESSIONID");
-//        return ResponseEntity.ok("로그아웃에 성공하였습니다.");
-//    }
-
     // 회원전체목록API
     // GET /api/users/all
 //    @GetMapping("/all")
@@ -192,37 +135,29 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
-//    @GetMapping("/detail")
-//    public ResponseEntity<?> getUserDetails() {
-//        try {
-//            UserDetailDto userDto = userService.getLoggedInUserDetails();
-//            return ResponseEntity.ok(userDto);
-//        } catch (IllegalStateException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-//        } catch (UsernameNotFoundException e) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
-//        }
-//    }
 
     // 회원정보수정API
-    // PUT /api/users/update/(현재로그인된 user의 정보를 불러와 수정)
+    // PUT /api/users/update/(현재 Jwt로그인된 user의 정보를 불러와 수정)
+    // PUT /api/users/update
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(
             @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam("userDto") String userDtoJson,
-            @AuthenticationPrincipal UserDetails userDetails
+            @RequestParam("userDto") String userDtoJson
     ) throws IOException {
+        // 인증 정보에서 사용자명(전화번호) 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPhoneNumber = authentication.getName();
+
+        // JSON 문자열을 UserDetailDto 객체로 변환
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         UserDetailDto userDetailDto = objectMapper.readValue(userDtoJson, UserDetailDto.class);
 
-        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+        // 현재 로그인한 사용자의 정보를 조회
+        UserEntity currentUser = userRepository.findByPhoneNumber(currentPhoneNumber)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // 새 파일이 제공된 경우
+        // 새 이미지 파일이 있는 경우 처리
         if (file != null && !file.isEmpty()) {
             if (currentUser.getImgKey() != null && !currentUser.getImgKey().isEmpty()) {
                 storageService.deleteImage(currentUser.getImgKey()); // 기존 이미지 삭제
@@ -231,16 +166,50 @@ public class UserController {
             userDetailDto.setImgKey(imageUrl);
         }
 
+        // 사용자 정보 업데이트 시도
         try {
             UserDetailDto updatedUser = userService.updateUser(userDetailDto);
             return ResponseEntity.ok(updatedUser);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (UsernameNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+//    @PutMapping("/update")
+//    public ResponseEntity<?> updateUser(
+//            @RequestParam(value = "file", required = false) MultipartFile file,
+//            @RequestParam("userDto") String userDtoJson,
+//            @AuthenticationPrincipal UserDetails userDetails
+//    ) throws IOException {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        objectMapper.registerModule(new JavaTimeModule());
+//        UserDetailDto userDetailDto = objectMapper.readValue(userDtoJson, UserDetailDto.class);
+//
+//        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+//
+//        // 새 파일이 제공된 경우
+//        if (file != null && !file.isEmpty()) {
+//            if (currentUser.getImgKey() != null && !currentUser.getImgKey().isEmpty()) {
+//                storageService.deleteImage(currentUser.getImgKey()); // 기존 이미지 삭제
+//            }
+//            String imageUrl = storageService.uploadImage(file);
+//            userDetailDto.setImgKey(imageUrl);
+//        }
+//
+//        try {
+//            UserDetailDto updatedUser = userService.updateUser(userDetailDto);
+//            return ResponseEntity.ok(updatedUser);
+//        } catch (IllegalStateException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+//        } catch (UsernameNotFoundException e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
+//        }
+//    }
 
     // 회원탈퇴 API
     // PUT /api/users/delete (로그인후 이용자의 비밀번호 확인후 일치시 삭제)

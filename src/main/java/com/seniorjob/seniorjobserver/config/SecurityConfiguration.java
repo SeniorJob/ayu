@@ -52,7 +52,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/users/**", "/api/auth/logout").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail").hasRole("USER")
+                .antMatchers("/api/users/detail", "api/users/update").hasRole("USER")
                 .anyRequest().authenticated()
 
                 .and();
