@@ -1,13 +1,18 @@
 package com.seniorjob.seniorjobserver.domain.entity;
 
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.usertype.UserType;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Entity
@@ -30,10 +35,14 @@ public class UserEntity {
     private String category;
     @Column(name = "region")
     private String region;
-    @Column(name = "img_key")
+    @Column(name = "img_key", nullable = true)
     private String imgKey;
-    @Column(name = "create_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
+//    @Column(name = "create_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
+//    private LocalDateTime createDate;
+    @CreationTimestamp
+    @Column(name = "create_date", nullable = false, updatable = false)
     private LocalDateTime createDate;
+    @LastModifiedDate
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
@@ -49,7 +58,7 @@ public class UserEntity {
         this.category = category;
         this.region = region;
         this.imgKey = imgKey;
-        this.updateDate = updateDate;
-        this.createDate = createDate;
+        //this.updateDate = updateDate;
+        //this.createDate = createDate;
     }
 }

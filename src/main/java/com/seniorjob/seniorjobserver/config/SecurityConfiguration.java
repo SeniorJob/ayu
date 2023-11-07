@@ -1,33 +1,22 @@
 package com.seniorjob.seniorjobserver.config;
 
-import com.seniorjob.seniorjobserver.controller.CustomAccessDeniedHandler;
-import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-import java.util.Arrays;
 
 @SpringBootApplication
 @Configuration
@@ -45,107 +34,50 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .formLogin().disable()
+                .httpBasic().disable()
+                .cors().disable()
                 .csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/api/users/join", "/api/users/all", "/api/users/login",
-                        "/api/lectures/all", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/search",
-                        "/api/lectures/sort/**", "/api/lectures/paging", "/api/lectureapply/list", "/api/lectureproposal/filter",
-                        "/api/lectureproposal/all", "/api/lectureproposal/detail/**", "/api/lectures/popular").permitAll()
-                .antMatchers("/", "/login", "/lecture/lectureList", "/lecture/detail/**",
-                        "/register", "/lecture/cancel-lecture-apply/**").permitAll()
-                .antMatchers( "/api/users/update", "/api/lectures", "/api/lectures/**",
-                        "/api/lectureapply/apply/**", "/api/lectureapply/close", "/api/lectures/myLectureAll",
-                        "api/lectures/myLectureDetail/**", "aip/lectureapply/cancel/**",
-                        "/api/lectureapply/close", "/api/lectureapply/approve", "/api/lectureproposal/apply",
-                        "/api/lectureproposal/update", "/api/lectureproposal/delete", "/api/lectureproposalapply/apply",
-                        "/api/lectureproposalapply/cancel/**", "/api/lectureproposalapply/approve",
-                        "/api/lectureproposalapply/close", "/api/users/detail",
-                        "/api/mypageApplyLecture/myApplyLectureAll", "/api/mypageApplyLecture/updateLectureApplyReason",
-                        "/api/mypageCreateLecture/myCreateLectureAll", "/api/mypageCreateLecture/myCreateLectureDetail/**",
-                        "/api/myProposalLecture/myProposalAll", "/api/users/delete", "/api/mypageApplyLecture/deleteLectureApply/**",
-                        "/api/lecturesStepTwo/week-title/**", "/api/lectures/completeCreation", "/api/lecturesStepTwo/**/weeks",
-                        "/api/lecturesStepTwo/lectures/**/weeks/**/plans", "/api/lectureStepTwo/**/attendance", "/api/lectureStepTwo/**/review",
-                        "/api/lecturesStepTwo/**/weeks/**/week-update", "/api/lecturesStepTwo/**/weeks/**/week-delete",
-                        "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete",
-                        "/api/lectures/delete/**", "/api/lectures/recommendLecture", "/api/myProposalLecture/filter", "/api/myProposalLecture/myProposalDetail/",
-                        "/api/mypageApplyLecture/filter", "/api/mypageApplyLecture/myApplyLectureDetail/**"
-                ).authenticated()
-                .antMatchers("/lecture/lectureCreate", "/mypage/applied-lectures",
-                        "/mypage/edit-apply-reason/**", "/mypage/lecture/apply/**",
-                        "/lecture/lectureCreate3").authenticated()
-                .anyRequest().authenticated()
-                .and()
-                .cors().and()
-                .formLogin()
-                .loginPage("/login")
-                .defaultSuccessUrl("/main")
-                .failureHandler(new CustomAuthFailureHandler())
-                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
-                .permitAll()
-                .and()
-                .httpBasic()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .and()
+
+                // exception handling시 클래스 추가
                 .exceptionHandling()
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setCharacterEncoding("UTF-8");
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    PrintWriter out = response.getWriter();
-                    out.println("{\"message\":\"로그인이 필요합니다.\"}");
-                })
 
-                .accessDeniedHandler(new CustomAccessDeniedHandler())
+                // 세션설정을 Stateless로 설정
                 .and()
-                .logout()
-                .logoutUrl("/api/users/logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    try {
-                        // 로그인 중인 회원이 없는 경우
-                        if (authentication == null || authentication.getPrincipal() == null || "anonymousUser".equals(authentication.getPrincipal().toString())) {
-                            response.setCharacterEncoding("UTF-8");
-                            response.setContentType("application/json");
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            PrintWriter out = response.getWriter();
-                            out.println("{\"message\":\"로그인 중인 회원이 없습니다.\"}");
-                            return;
-                        }
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-                        request.getSession().invalidate();
-                        String phoneNumber = ((UserDetails) authentication.getPrincipal()).getUsername();
+                // 로그인, 회원가입 등 토큰이 없는 상태에서 요청이 들어오는 api는 permitAll설정
+                .and()
+                .authorizeRequests()
+                .antMatchers("/api/users/**", "/api/auth/logout").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
-                        UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
-                                .orElseThrow(() -> new UsernameNotFoundException("User not found with phone number: " + phoneNumber));
+                // 권한테스트
+                .antMatchers("/api/users/detail").hasRole("USER")
+                .anyRequest().authenticated()
 
-                        String message = user.getName() + " 회원님 로그아웃에 성공하였습니다.";
-
-                        response.setCharacterEncoding("UTF-8");
-                        response.setContentType("application/json");
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        PrintWriter out = response.getWriter();
-                        out.println("{\"message\":\"" + message + "\"}");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    CookieUtil.clearCookie(response, "JSESSIONID");
-                });
+                .and();
+                // JwtFilter
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:63342", "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+    private static final String[] AUTH_WHITELIST = {
+            "/v2/api-docs",
+            "/v3/api-docs/**",
+            "/configuration/ui",
+            "/swagger-resources/**",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/file/**",
+            "/image/**",
+            "/swagger/**",
+            "/swagger-ui/**",
+            "/h2/**"
+    };
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
-        return source;
+    // 정적인 파일 요청에 대해 무시
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(AUTH_WHITELIST);
     }
 
     @Override
