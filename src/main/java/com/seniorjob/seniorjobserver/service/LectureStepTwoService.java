@@ -165,13 +165,25 @@ public class LectureStepTwoService {
     }
 
     // 1. weekTitle삭제API Service
-    public void deleteWeek(Long lectureId, Long weekId, UserDetails userDetails){
+    public void deleteWeek(Long lectureId, Long weekId, UserDetails userDetails) {
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
 
         WeekEntity weekEntity = weekRepository.findByIdAndCreateId(weekId, lectureId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 주차를 찾을 수 없습니다."));
+
+        Integer deletedWeekNumber = weekEntity.getWeek_number();
+
         weekRepository.delete(weekEntity);
+
+        List<WeekEntity> allWeeksInLecture = weekRepository.findByLectureId(lectureId);
+
+        for (WeekEntity week : allWeeksInLecture) {
+            if (week.getWeek_number() > deletedWeekNumber) {
+                week.setWeek_number(week.getWeek_number() - 1);
+                weekRepository.save(week);
+            }
+        }
     }
 
     // 2. weekPlan수정 Service
@@ -205,8 +217,19 @@ public class LectureStepTwoService {
 
         WeekPlanEntity weekPlan = weekPlanRepository.findPlanByIdAndWeek(planId, week)
                 .orElseThrow(() -> new ResourceNotFoundException("강좌개설2단계에서 해당 상세주차별 내용을 찾을 수 없습니다."));
+        Integer deletedPlanNumber = weekPlan.getDetail_number(); // 삭제할 주차 계획 번호 가져오기
 
         weekPlanRepository.deleteById(planId);
+
+        // 해당 주차(week)의 모든 주차 계획(plan) 목록 가져오기
+        List<WeekPlanEntity> remainingWeekPlans = weekPlanRepository.findByWeekId(weekId);
+        for (WeekPlanEntity remainingWeekPlan : remainingWeekPlans) {
+            // 삭제된 주차 계획 번호보다 큰 주차 계획들의 번호를 업데이트
+            if (remainingWeekPlan.getDetail_number() > deletedPlanNumber) {
+                remainingWeekPlan.setDetail_number(remainingWeekPlan.getDetail_number() - 1);
+                weekPlanRepository.save(remainingWeekPlan);
+            }
+        }
     }
 
     // 3. attendance수정 Service 출석조건은 수정만가능하다.

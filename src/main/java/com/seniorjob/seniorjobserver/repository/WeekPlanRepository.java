@@ -16,5 +16,7 @@ public interface WeekPlanRepository extends JpaRepository<WeekPlanEntity, Long> 
     @Query("SELECT wp FROM WeekPlanEntity wp WHERE wp.plan_id = :planId AND wp.week = :week")
     Optional<WeekPlanEntity> findPlanByIdAndWeek(@Param("planId") Long planId, @Param("week") WeekEntity week);
 
+    @Query("SELECT wp FROM WeekPlanEntity wp WHERE wp.week.week_id = :weekId")
+    List<WeekPlanEntity> findByWeekId(@Param("weekId") Long weekId);
 }
 

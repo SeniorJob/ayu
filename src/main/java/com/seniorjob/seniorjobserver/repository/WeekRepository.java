@@ -25,5 +25,7 @@ public interface WeekRepository extends JpaRepository<WeekEntity, Long> {
     @Modifying
     @Query("DELETE FROM WeekEntity w WHERE w.create_id = :lecture")
     void deleteByLecture(@Param("lecture") LectureEntity lecture);
-}
+
+    @Query("SELECT w FROM WeekEntity w WHERE w.create_id.create_id = :lectureId ORDER BY w.week_number ASC")
+    List<WeekEntity> findByLectureId(@Param("lectureId") Long lectureId);}
 

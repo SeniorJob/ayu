@@ -18,7 +18,7 @@ public class LoginResponse {
 
     public LoginResponse(String accessToken, String userName, Date tokenExpiarationDate) {
         this.accessToken = accessToken;
-        this.message = userName + "님이 로그인에 성공하였습니다.";
+        this.message = userName;
         this.tokenExpiarationDate = tokenExpiarationDate;
     }
 

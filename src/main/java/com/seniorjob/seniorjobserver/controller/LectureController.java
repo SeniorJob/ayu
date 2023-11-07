@@ -3,13 +3,17 @@ package com.seniorjob.seniorjobserver.controller;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.dto.FilterLectureDto;
 import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
 import com.seniorjob.seniorjobserver.dto.RecommendLectureDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
@@ -29,6 +33,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,13 +49,19 @@ public class LectureController {
 	private final LectureRepository lectureRepository;
 	private final UserService userService;
 	private static final Logger log = LoggerFactory.getLogger(LectureController.class);
+	private AuthenticationManager authenticationManager;
+	private final JwtTokenProvider jwtTokenProvider;
 
-	public LectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository) {
+	public LectureController(LectureService lectureService, StorageService storageService,
+							 UserRepository userRepository, UserService userService, LectureRepository lectureRepository,
+							 AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
 		this.lectureService = lectureService;
 		this.storageService = storageService;
 		this.userRepository = userRepository;
 		this.userService = userService;
 		this.lectureRepository = lectureRepository;
+		this.authenticationManager = authenticationManager;
+		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
 	// 강좌개설1단계 API
@@ -60,14 +71,17 @@ public class LectureController {
 	public ResponseEntity<LectureDto> createLecture(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("lectureDto") String lectureDtoJson,
-			@AuthenticationPrincipal UserDetails userDetails
+			HttpServletRequest request // HttpServletRequest를 통해 토큰을 받습니다.
 	) throws IOException {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String currentPhoneNumber = authentication.getName();
+
+		UserEntity currentUser = userRepository.findByPhoneNumber(currentPhoneNumber)
+				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JavaTimeModule());
 		LectureDto lectureDto = objectMapper.readValue(lectureDtoJson, LectureDto.class);
-
-		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-				.orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
 		lectureDto.setCreator(currentUser.getName()); // 로그인된 사용자의 이름을 creator로 지정
 

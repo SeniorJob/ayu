@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.service;
 
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.*;
 import com.seniorjob.seniorjobserver.dto.*;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -42,12 +44,16 @@ public class LectureService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(LectureController.class);
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+
 
     public LectureService(LectureRepository lectureRepository, UserRepository userRepository,
                           WeekRepository weekRepository,
                           WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository,
                           LectureApplyRepository lectureApplyRepository,
-                          LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository) {
+                          LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository,
+                          JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager) {
         this.lectureRepository = lectureRepository;
         this.userRepository = userRepository;
         this.weekRepository = weekRepository;
@@ -56,6 +62,8 @@ public class LectureService {
         this.lectureApplyRepository = lectureApplyRepository;
         this.lectureProposalRepository = lectureProposalRepository;
         this.lectureProposalApplyRepository = lectureProposalApplyRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationManager = authenticationManager;
     }
 
     public List<LectureDto> getAllLectures() {
