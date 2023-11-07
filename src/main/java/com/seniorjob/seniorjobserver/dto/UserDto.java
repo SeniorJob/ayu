@@ -5,6 +5,7 @@ import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import reactor.util.annotation.Nullable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class UserDto {
     private LocalDate dateOfBirth;
     private String category;
     private String region;
+    @Nullable
     private String imgKey;
     private LocalDateTime updateDate;
     private LocalDateTime createDate;

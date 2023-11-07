@@ -1,45 +1,40 @@
 package com.seniorjob.seniorjobserver.controller;
 
-import antlr.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seniorjob.seniorjobserver.config.CookieUtil;
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
-import com.seniorjob.seniorjobserver.dto.LoginRequest;
+import com.seniorjob.seniorjobserver.dto.TokenDto;
+import com.seniorjob.seniorjobserver.reponse.ErrorResponse;
+import com.seniorjob.seniorjobserver.reponse.LoginResponse;
 import com.seniorjob.seniorjobserver.dto.UserDetailDto;
 import com.seniorjob.seniorjobserver.dto.UserDto;
+import com.seniorjob.seniorjobserver.reponse.LogoutResponse;
 import com.seniorjob.seniorjobserver.repository.*;
 import com.seniorjob.seniorjobserver.service.StorageService;
 import com.seniorjob.seniorjobserver.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.security.core.AuthenticationException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,15 +54,17 @@ public class UserController {
     private final AttendanceRepository attendanceRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
     private AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     public UserController(UserService userService, UserRepository userRepository, PasswordEncoder pwEncoder,
                           StorageService storageService, ObjectMapper objectMapper,
                           LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository,
                           LectureProposalRepository lectureProposalRepository, LectureProposalApplyRepository lectureProposalApplyRepository,
-                          WeekRepository weekRepository, WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository) {
+                          WeekRepository weekRepository, WeekPlanRepository weekPlanRepository, AttendanceRepository attendanceRepository,
+                          AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.storageService = storageService;
@@ -79,100 +76,60 @@ public class UserController {
         this.weekRepository = weekRepository;
         this.weekPlanRepository = weekPlanRepository;
         this.attendanceRepository = attendanceRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     // 회원가입API with 암호화 세션//
     @PostMapping("/join")
-    public ResponseEntity<?> registerUser(
-            @RequestParam("userDto") String userDtoJson){
-            //@RequestParam("file") MultipartFile file)
+    public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
         try {
-            UserDto userDto = objectMapper.readValue(userDtoJson, UserDto.class);
-
-            Map<String, String> requireInput = new HashMap<>();
-            requireInput.put("이름 ", userDto.getName());
-            requireInput.put("휴대폰번호 ", userDto.getPhoneNumber());
-            requireInput.put("비밀번호 ", userDto.getEncryptionCode());
-            requireInput.put("비밀번호 확인 ", userDto.getConfirmPassword());
-            requireInput.put("직업 ", userDto.getJob());
-
-            for (Map.Entry<String, String> entry : requireInput.entrySet()){
-                if(entry.getValue() == null || entry.getValue().trim().isEmpty()){
-                    return ResponseEntity.badRequest().body(entry.getKey() + "을(를) 입력해주세요!");
-                }
-            }
-
-            String encryptionCode = userDto.getEncryptionCode();
-            String confirmPassword = userDto.getConfirmPassword();
-
-            // 비밀번호 검증 메서드 호출
-            if (!isValidPassword(encryptionCode)) {
-                return ResponseEntity.badRequest().body("비밀번호는 6~12자리 영문+숫자 1개 이상이어야 합니다.");
-            }
-
-            // 비밀번호 확인 비교
-            if (!encryptionCode.equals(confirmPassword)) {
-                return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다!!");
-            }
-
-            // 전화번호확인
-            if(!isValidPhoneNumber(userDto.getPhoneNumber())){
-                return ResponseEntity.badRequest().body("전화번호는 앞 3자리를 포함하여 11자리를 입력해주세요!");
-            }
-
-//            String imageUrl = storageService.uploadImage(file);
-//            userDto.setImgKey(imageUrl);
-            userDto.setCreateDate(LocalDateTime.now());
-
             UserEntity userEntity = userService.createUser(userDto);
             return ResponseEntity.ok(userEntity);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image: " + e.getMessage());
         }
     }
 
-    // 비밀번호 생성 규칙 검증 메서드
-    private boolean isValidPassword(String password) {
-        // 비밀번호는 6~12자리 영문+숫자 1개 이상이어야 함
-        return password.matches("^(?=.*[A-Za-z])(?=.*\\d).{6,12}$");
+    // JWT로그인API
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserDto userDto) {
+        try {
+            LoginResponse loginResponse = userService.login(userDto);
+            return ResponseEntity.ok(loginResponse);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
+        }
     }
-
-    // 숫자만 11자리인 형태로 전화번호 검증
-    private boolean isValidPhoneNumber(String phoneNumber) {
-        return phoneNumber != null && phoneNumber.matches("^\\d{11}$");
-    }
-
 
     // 세션 로그인
     // POST /api/users/login
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest,
-                                       HttpServletRequest request,
-                                       HttpServletResponse response) {
-        String phoneNumber = loginRequest.getPhoneNumber();
-        String password = loginRequest.getPassword();
-
-        if (phoneNumber == null || password == null || phoneNumber.trim().isEmpty() || password.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("아이디와 비밀번호를 입력해주세요");
-        }
-
-        try {
-            UserEntity user = userService.authenticate(phoneNumber, password);
-            HttpSession session = request.getSession(true);
-
-            Map<String, String> responseBody = new HashMap<>();
-            responseBody.put("message", user.getName() + " 회원님 로그인에 성공하였습니다");
-            return ResponseEntity.ok(responseBody);
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("계정을 찾을 수 없습니다.");
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그인 처리 중 오류가 발생했습니다.");
-        }
-    }
+//    @PostMapping("/login")
+//    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest,
+//                                       HttpServletRequest request,
+//                                       HttpServletResponse response) {
+//        String phoneNumber = loginRequest.getPhoneNumber();
+//        String password = loginRequest.getPassword();
+//
+//        if (phoneNumber == null || password == null || phoneNumber.trim().isEmpty() || password.trim().isEmpty()) {
+//            return ResponseEntity.badRequest().body("아이디와 비밀번호를 입력해주세요");
+//        }
+//
+//        try {
+//            UserEntity user = userService.authenticate(phoneNumber, password);
+//            HttpSession session = request.getSession(true);
+//
+//            Map<String, String> responseBody = new HashMap<>();
+//            responseBody.put("message", user.getName() + " 회원님 로그인에 성공하였습니다");
+//            return ResponseEntity.ok(responseBody);
+//        } catch (UsernameNotFoundException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("계정을 찾을 수 없습니다.");
+//        } catch (BadCredentialsException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다.");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그인 처리 중 오류가 발생했습니다.");
+//        }
+//    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentials(BadCredentialsException e) {
@@ -191,48 +148,64 @@ public class UserController {
 
     // 세션 로그아웃
     // POST /api/users/logout
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
-        CookieUtil.clearCookie(response, "JSESSIONID");
-        return ResponseEntity.ok("로그아웃에 성공하였습니다.");
-    }
+//    @PostMapping("/logout")
+//    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+//        HttpSession session = request.getSession(false);
+//        if (session != null) {
+//            session.invalidate();
+//        }
+//
+//        CookieUtil.clearCookie(response, "JSESSIONID");
+//        return ResponseEntity.ok("로그아웃에 성공하였습니다.");
+//    }
 
     // 회원전체목록API
     // GET /api/users/all
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            List<UserDetailDto> users = userService.getAllUsers();
-            return new ResponseEntity<>(users, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @GetMapping("/all")
+//    public ResponseEntity<?> getAllUsers() {
+//        try {
+//            List<UserDetailDto> users = userService.getAllUsers();
+//            return new ResponseEntity<>(users, HttpStatus.OK);
+//        } catch (IllegalArgumentException e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     // 로그인된 회원정보api
     // GET /api/users/detail
     @GetMapping("/detail")
     public ResponseEntity<?> getUserDetails() {
         try {
-            UserDetailDto userDto = userService.getLoggedInUserDetails();
+            // SecurityContext에서 인증 정보를 가져와 UserService에 전달
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetailDto userDto = userService.getLoggedInUserDetails(authentication);
             return ResponseEntity.ok(userDto);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | UsernameNotFoundException e) {
+            // 상태 코드와 함께 예외 메시지 반환
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
+            // 기타 예외 처리
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
+//    @GetMapping("/detail")
+//    public ResponseEntity<?> getUserDetails() {
+//        try {
+//            UserDetailDto userDto = userService.getLoggedInUserDetails();
+//            return ResponseEntity.ok(userDto);
+//        } catch (IllegalStateException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+//        } catch (UsernameNotFoundException e) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
+//        }
+//    }
 
     // 회원정보수정API
     // PUT /api/users/update/(현재로그인된 user의 정보를 불러와 수정)
