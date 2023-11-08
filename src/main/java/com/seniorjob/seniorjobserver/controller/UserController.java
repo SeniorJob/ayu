@@ -178,39 +178,6 @@ public class UserController {
         }
     }
 
-//    @PutMapping("/update")
-//    public ResponseEntity<?> updateUser(
-//            @RequestParam(value = "file", required = false) MultipartFile file,
-//            @RequestParam("userDto") String userDtoJson,
-//            @AuthenticationPrincipal UserDetails userDetails
-//    ) throws IOException {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.registerModule(new JavaTimeModule());
-//        UserDetailDto userDetailDto = objectMapper.readValue(userDtoJson, UserDetailDto.class);
-//
-//        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-//
-//        // 새 파일이 제공된 경우
-//        if (file != null && !file.isEmpty()) {
-//            if (currentUser.getImgKey() != null && !currentUser.getImgKey().isEmpty()) {
-//                storageService.deleteImage(currentUser.getImgKey()); // 기존 이미지 삭제
-//            }
-//            String imageUrl = storageService.uploadImage(file);
-//            userDetailDto.setImgKey(imageUrl);
-//        }
-//
-//        try {
-//            UserDetailDto updatedUser = userService.updateUser(userDetailDto);
-//            return ResponseEntity.ok(updatedUser);
-//        } catch (IllegalStateException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-//        } catch (UsernameNotFoundException e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("에러 : " + e.getMessage());
-//        }
-//    }
-
     // 회원탈퇴 API
     // PUT /api/users/delete (로그인후 이용자의 비밀번호 확인후 일치시 삭제)
     @DeleteMapping("/delete")

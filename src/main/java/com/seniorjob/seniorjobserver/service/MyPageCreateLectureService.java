@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.service;
 
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.MyPageCreateLectureDto;
@@ -25,12 +26,14 @@ public class MyPageCreateLectureService {
     private final AttendanceRepository attendanceRepository;
     private final CompletionLectureRepository completionLectureRepository;
     private final LectureApplyRepository lectureApplyRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     public MyPageCreateLectureService(WeekRepository weekRepository, WeekPlanRepository weekPlanRepository,
                                       CompletionLectureRepository completionLectureRepository, AttendanceRepository attendanceRepository,
                                       UserRepository userRepository, LectureRepository lectureRepository,
-                                      LectureService lectureService, LectureApplyRepository lectureApplyRepository) {
+                                      LectureService lectureService, LectureApplyRepository lectureApplyRepository,
+                                      JwtTokenProvider jwtTokenProvider) {
         this.weekRepository = weekRepository;
         this.weekPlanRepository = weekPlanRepository;
         this.completionLectureRepository = completionLectureRepository;
@@ -39,6 +42,7 @@ public class MyPageCreateLectureService {
         this.lectureRepository = lectureRepository;
         this.lectureService = lectureService;
         this.lectureApplyRepository = lectureApplyRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     // 마이페이지(개설강좌) - 로그인된 회원이 개설한 강좌전체검색

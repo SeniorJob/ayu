@@ -1,9 +1,12 @@
 package com.seniorjob.seniorjobserver.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seniorjob.seniorjobserver.exception.*;
 import com.seniorjob.seniorjobserver.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -29,17 +35,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String jwtToken = jwtTokenProvider.resolveToken(request);
-        log.info("JwtVerificationFilter.doFilterInternal excute");
-
-        if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(jwtToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), request.getRequestURI());
-        } else {
-            log.info("유효한 JWT 토큰이 없습니다. requestURI : {}", request.getRequestURI());
+        try {
+            String jwtToken = jwtTokenProvider.resolveToken(request);
+            if (jwtToken != null) {
+                if (jwtTokenProvider.validateToken(jwtToken)) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(jwtToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+            filterChain.doFilter(request, response);
+        } catch (CustomJwtExpiredException e) {
+            setErrorResponse(HttpStatus.UNAUTHORIZED, response, "AuthenticationFilter : 만료된 JWT 토큰입니다.");
+        } catch (CustomJwtUnsupportedException e) {
+            setErrorResponse(HttpStatus.UNAUTHORIZED, response, "AuthenticationFilter : 지원되지 않는 JWT 토큰입니다.");
+        } catch (CustomJwtMalformedException e) {
+            setErrorResponse(HttpStatus.UNAUTHORIZED, response, "AuthenticationFilter : 잘못된 구조의 JWT 토큰입니다.");
+        } catch (CustomJwtSignatureException e) {
+            setErrorResponse(HttpStatus.UNAUTHORIZED, response, "AuthenticationFilter : JWT 토큰의 서명을 검증할 수 없습니다.");
+        } catch (CustomJwtIllegalArgumentException e) {
+            setErrorResponse(HttpStatus.UNAUTHORIZED, response, "AuthenticationFilter : JWT 토큰이 올바르지 않습니다.");
         }
-
-        filterChain.doFilter(request, response);
     }
+
+    private void setErrorResponse(HttpStatus status, HttpServletResponse response, String message) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("timestamp", LocalDateTime.now());
+        errorDetails.put("status", status.value());
+        errorDetails.put("error", status.getReasonPhrase());
+        errorDetails.put("message", message);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.writeValue(response.getWriter(), errorDetails);
+    }
+
 }

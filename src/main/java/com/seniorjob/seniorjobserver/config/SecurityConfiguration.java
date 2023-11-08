@@ -56,8 +56,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/api/lectures/filter").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail", "api/users/update", "/api/lectures/**",
-                        "/api/lectures/delete/**").hasRole("USER")
+                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
+                        "/api/lectures/**", "/api/lectures/delete/**",
+                        "/api/lectureapply/apply/**",
+                        "/api/mypageCreateLecture/myCreateLectureDetail/**",
+                        "/api/mypageCreateLecture/filter",
+                        "/api/mypageApplyLecture/filter",
+                        "/api/mypageApplyLecture/myAppliedLectureDetail/**",
+                        "/api/mypageApplyLecture/updateLectureApplyReason",
+                        "/api/mypageApplyLecture/deleteLectureApply/**").hasRole("USER")
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록

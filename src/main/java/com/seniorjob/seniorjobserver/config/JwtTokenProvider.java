@@ -78,15 +78,15 @@ public class JwtTokenProvider {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
         } catch (ExpiredJwtException e) {
-            throw new CustomJwtExpiredException("만료된 JWT 토큰입니다.");
+            throw new CustomJwtExpiredException("JwtTokenProvider : 만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
-            throw new CustomJwtUnsupportedException("지원되지 않는 JWT 토큰입니다.");
+            throw new CustomJwtUnsupportedException("JwtTokenProvider : 지원되지 않는 JWT 토큰입니다.");
         } catch (MalformedJwtException e) {
-            throw new CustomJwtMalformedException("잘못된 구조의 JWT 토큰입니다.");
+            throw new CustomJwtMalformedException("JwtTokenProvider : 잘못된 구조의 JWT 토큰입니다.");
         } catch (SignatureException e) {
-            throw new CustomJwtSignatureException("JWT 토큰의 서명을 검증할 수 없습니다.");
+            throw new CustomJwtSignatureException("JwtTokenProvider : JWT 토큰의 서명을 검증할 수 없습니다.");
         } catch (IllegalArgumentException e) {
-            throw new CustomJwtIllegalArgumentException("JWT 토큰이 올바르지 않습니다.");
+            throw new CustomJwtIllegalArgumentException("JwtTokenProvider : JWT 토큰이 올바르지 않습니다.");
         }
     }
 }
