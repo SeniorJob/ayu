@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.controller;
 
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.*;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -39,8 +41,12 @@ public class MypageCreateLectureController {
     private final LectureApplyService lectureApplyService;
     private final LectureStepTwoService lectureStepTwoService;
     private final MypageService mypageService;
+    private AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+
     public MypageCreateLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository ,
-                            LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService, MypageService mypageService) {
+                            LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService, MypageService mypageService,
+                                         AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.lectureService = lectureService;
         this.storageService = storageService;
         this.userRepository = userRepository;
@@ -50,6 +56,8 @@ public class MypageCreateLectureController {
         this.lectureApplyService = lectureApplyService;
         this.lectureStepTwoService = lectureStepTwoService;
         this.mypageService = mypageService;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
 
