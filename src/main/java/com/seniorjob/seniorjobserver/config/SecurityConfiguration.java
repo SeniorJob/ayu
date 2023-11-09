@@ -17,6 +17,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 @SpringBootApplication
@@ -36,11 +40,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
+        http.csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
-                .cors().disable()
-                .csrf().disable()
 
                 // exception handling시 클래스 추가
                 .exceptionHandling()
@@ -49,22 +51,35 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
+                .and()
+                // CORS 설정 커스터마이즈
+                .cors().configurationSource(request -> {
+                    CorsConfiguration cors = new CorsConfiguration();
+                    cors.setAllowedOrigins(List.of("*"));
+                    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    cors.setAllowedHeaders(List.of("*")); // 허용할 HTTP 헤더
+                    cors.setAllowCredentials(true);
+                    cors.setExposedHeaders(Arrays.asList("Authorization", "Authorization-refresh"));
+                    return cors;
+                })
+
                 // 로그인, 회원가입 등 토큰이 없는 상태에서 요청이 들어오는 api는 permitAll설정
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**",
-                "/api/lectures/filter").permitAll() // 로그인과 로그아웃은 모두에게 허용
+                "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
                 .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
-                        "/api/lectures/**", "/api/lectures/delete/**",
+                        "/api/lectures/**", "/api/lectures/**", "/api/lectures/delete/**",
                         "/api/lectureapply/apply/**",
                         "/api/mypageCreateLecture/myCreateLectureDetail/**",
                         "/api/mypageCreateLecture/filter",
                         "/api/mypageApplyLecture/filter",
                         "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/mypageApplyLecture/updateLectureApplyReason",
-                        "/api/mypageApplyLecture/deleteLectureApply/**").hasRole("USER")
+                        "/api/mypageApplyLecture/deleteLectureApply/**", "api/lectures/recommendLecture"
+                ).hasRole("USER")
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
