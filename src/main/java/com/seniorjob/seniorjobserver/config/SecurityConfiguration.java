@@ -27,6 +27,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CorsConfig corsConfig;
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -58,14 +60,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
                 // 권한테스트
                 .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
-                        "/api/lectures/**", "/api/lectures/**", "/api/lectures/delete/**", "api/lectures/recommendLecture",
+                        "/api/lectures/**", "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
                         "/api/lectureapply/apply/**",
                         "/api/mypageCreateLecture/myCreateLectureDetail/**",
                         "/api/mypageCreateLecture/filter",
                         "/api/mypageApplyLecture/filter",
                         "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/mypageApplyLecture/updateLectureApplyReason",
-                        "/api/mypageApplyLecture/deleteLectureApply/**").hasRole("USER")
+                        "/api/mypageApplyLecture/deleteLectureApply/**",
+                        "/api/myProposalLecture/filter/myProposalDetail/{id}",
+                        "/api/myProposalLecture/myProposalDetail/**").hasRole("USER")
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
