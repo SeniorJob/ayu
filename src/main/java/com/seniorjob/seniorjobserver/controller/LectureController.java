@@ -71,7 +71,7 @@ public class LectureController {
 	public ResponseEntity<LectureDto> createLecture(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("lectureDto") String lectureDtoJson,
-			HttpServletRequest request // HttpServletRequest를 통해 토큰을 받습니다.
+			@AuthenticationPrincipal UserDetails userDetails
 	) throws IOException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String currentPhoneNumber = authentication.getName();

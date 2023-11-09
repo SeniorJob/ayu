@@ -118,7 +118,7 @@ public class UserController {
 //    }
 
     // 로그인된 회원정보api
-    // GET /api/users/detail
+    // POST /api/users/detail
     @PostMapping("/detail")
     public ResponseEntity<?> getUserDetails() {
         try {
@@ -179,7 +179,7 @@ public class UserController {
     }
 
     // 회원탈퇴 API
-    // PUT /api/users/delete (로그인후 이용자의 비밀번호 확인후 일치시 삭제)
+    // DELETE /api/users/delete (로그인후 이용자의 비밀번호 확인후 일치시 삭제)
     @DeleteMapping("/delete")
     @Transactional
     public ResponseEntity<?> deleteUser(
