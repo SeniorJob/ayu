@@ -55,21 +55,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**",
-                "/api/lectures/filter", "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular").permitAll() // 로그인과 로그아웃은 모두에게 허용
-
+                        "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular",
+                        "/api/lectureapply/list").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
-                        "/api/lectures/**", "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
-                        "/api/lectureapply/apply/**",
-                        "/api/mypageCreateLecture/myCreateLectureDetail/**",
+                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete").hasRole("USER")
+
+                .antMatchers("/api/lectures/**", "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
+                        "/api/lectureapply/apply/**", "/api/mypageCreateLecture/myCreateLectureDetail/**",
                         "/api/mypageCreateLecture/filter",
                         "/api/mypageApplyLecture/filter",
                         "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageApplyLecture/deleteLectureApply/**",
-                        "/api/myProposalLecture/filter/myProposalDetail/{id}",
-                        "/api/myProposalLecture/myProposalDetail/**").hasRole("USER")
+                        "/api/myProposalLecture/filter/myProposalDetail/**",
+                        "/api/myProposalLecture/myProposalDetail/**",
+                        "/api/mypageApplyLecture/filter", "/api/mypageApplyLecture/updateLectureApplyReason",
+                        "/api/mypageApplyLecture/deleteLectureApply/**", "/api/mypageApplyLecture/myAppliedLectureDetail/**",
+                        "/api/lectureapply/apply/**", "/api/lectureapply/cancel", "/api/lectureapply/close",
+                        "/api/lectureapply/approve").authenticated()
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
