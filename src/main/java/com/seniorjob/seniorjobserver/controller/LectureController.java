@@ -66,7 +66,6 @@ public class LectureController {
 
 	// 강좌개설1단계 API
 	// POST /api/lectures
-	@PreAuthorize("isAuthenticated()")
 	@PostMapping
 	public ResponseEntity<LectureDto> createLecture(
 			@RequestParam("file") MultipartFile file,
