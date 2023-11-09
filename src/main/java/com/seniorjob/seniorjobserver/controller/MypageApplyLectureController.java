@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.controller;
 
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.controller.LectureController;
 import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,10 +40,13 @@ public class MypageApplyLectureController {
     private final LectureStepTwoService lectureStepTwoService;
     private final MyPageLectureApplyService myPageLectureApplyService;
     private final MypageService mypageService;
+    private AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public MypageApplyLectureController(LectureService lectureService, StorageService storageService, UserRepository userRepository, UserService userService, LectureRepository lectureRepository,
                                         LectureProposalService lectureProposalService, LectureApplyService lectureApplyService, LectureStepTwoService lectureStepTwoService,
-                                        MyPageLectureApplyService myPageLectureApplyService, MypageService mypageService) {
+                                        MyPageLectureApplyService myPageLectureApplyService, MypageService mypageService,
+                                        AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.lectureService = lectureService;
         this.storageService = storageService;
         this.userRepository = userRepository;
@@ -52,6 +57,8 @@ public class MypageApplyLectureController {
         this.lectureStepTwoService = lectureStepTwoService;
         this.myPageLectureApplyService = myPageLectureApplyService;
         this.mypageService = mypageService;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 API
@@ -72,7 +79,6 @@ public class MypageApplyLectureController {
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 필터링API
     // 필터링 : 제목 + 강좌상태 + 정렬(최신순, 오래된순, 인기순, 가격높은순, 가격낮은순)
     @GetMapping("/filter")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMyAppliedLecturesWithFilter(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "status", required = false) LectureEntity.LectureStatus status,

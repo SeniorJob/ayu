@@ -109,11 +109,9 @@ public class MypageCreateLectureController {
     public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "filter", required = false) String filter,
-            @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "category", required = false) String category,
             @RequestParam(defaultValue = "1", name = "page") int page,
-            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(defaultValue = "5", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "false") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -131,11 +129,6 @@ public class MypageCreateLectureController {
         // 필터링: 조건에 따라 lectureList 필터링
         if (filter != null && !filter.isEmpty()) {
             myLectureAll = lectureService.filterLectures(myLectureAll, filter, descending);
-        }
-
-        // 필터링: 지역 검색
-        if (region != null && !region.isEmpty()) {
-            myLectureAll = lectureService.filterRegion(myLectureAll, region);
         }
 
         // 필터링: 모집중, 개설대기중, 진행중 상태에 따라 필터링
@@ -159,11 +152,6 @@ public class MypageCreateLectureController {
             }
 
             myLectureAll = lectureService.filterStatus(myLectureAll, lectureStatus);
-        }
-
-        // 필터링: 카테고리명
-        if (category != null && !category.isEmpty()) {
-            myLectureAll = lectureService.filterCategory(myLectureAll, category);
         }
 
         // 검색결과에 해당하는 강좌가 없을 경우

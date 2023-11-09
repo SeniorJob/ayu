@@ -136,7 +136,7 @@ public class MyPageLectureApplyService {
         }
 
         // 페이지네이션
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page -1, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), lectureApplyDtos.size());
 

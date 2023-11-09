@@ -1,5 +1,6 @@
 package com.seniorjob.seniorjobserver.controller;
 
+import com.seniorjob.seniorjobserver.config.JwtTokenProvider;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.dto.LectureProposalDto;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
@@ -30,12 +32,17 @@ public class MypageProposalLectureController {
     private final MyPageLectureProposalService myPageLectureProposalService;
     private final UserRepository userRepository;
     private final LectureProposalRepository lectureProposalRepository;
+    private AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public MypageProposalLectureController(MyPageLectureProposalService myPageLectureProposalService, UserRepository userRepository, LectureProposalRepository lectureProposalRepository){
+    public MypageProposalLectureController(MyPageLectureProposalService myPageLectureProposalService, UserRepository userRepository, LectureProposalRepository lectureProposalRepository,
+                                           AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider){
         this.myPageLectureProposalService = myPageLectureProposalService;
         this.userRepository = userRepository;
         this.lectureProposalRepository = lectureProposalRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     // 마이페이지(제안강좌) - 세션로그인후 자신이 개설한 강좌 제안 상세보기 API (참여강좌)
@@ -69,7 +76,7 @@ public class MypageProposalLectureController {
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(defaultValue = "1", name = "page") int page,
-            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(defaultValue = "5", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "false") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
 
