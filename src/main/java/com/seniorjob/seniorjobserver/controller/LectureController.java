@@ -65,8 +65,8 @@ public class LectureController {
 	}
 
 	// 강좌개설1단계 API
-	// POST /api/lectures
-	@PostMapping
+	// POST /api/lectures/create
+	@PostMapping("/create")
 	public ResponseEntity<LectureDto> createLecture(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("lectureDto") String lectureDtoJson,
