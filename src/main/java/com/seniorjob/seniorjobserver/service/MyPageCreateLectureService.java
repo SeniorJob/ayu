@@ -121,7 +121,6 @@ public class MyPageCreateLectureService {
     }
 
     // 필터링 : 제목검색 -> 최신순,오래된순, 가격높은순, 가격낮은순, 인기순, 지역(시,군),
-    // 상좌상태(모집중 = 신청가능상태,  개설대기중 = 개설대기상태, 진행중 = 진행상태), 카테고리
     public List<MyPageCreateLectureDto> filterLectures(List<MyPageCreateLectureDto> lectureList, String filter, boolean descending) {
         switch (filter){
             case "latest":
