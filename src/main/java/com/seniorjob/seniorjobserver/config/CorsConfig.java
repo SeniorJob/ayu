@@ -20,6 +20,7 @@ public class CorsConfig implements WebMvcConfigurer {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("*");
+        //config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
