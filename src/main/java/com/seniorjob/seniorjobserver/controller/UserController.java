@@ -138,7 +138,6 @@ public class UserController {
 
     // 회원정보수정API
     // PUT /api/users/update/(현재 Jwt로그인된 user의 정보를 불러와 수정)
-    // PUT /api/users/update
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(
             @RequestParam(value = "file", required = false) MultipartFile file,

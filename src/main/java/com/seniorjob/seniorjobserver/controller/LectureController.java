@@ -66,7 +66,9 @@ public class LectureController {
 
 	// 강좌개설1단계 API
 	// POST /api/lectures/create
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop"})
+	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
+			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
+			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('USER')")
 	public ResponseEntity<LectureDto> createLecture(

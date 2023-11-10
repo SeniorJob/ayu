@@ -37,8 +37,7 @@ public class UserEntity {
     private String region;
     @Column(name = "img_key", nullable = true)
     private String imgKey;
-//    @Column(name = "create_date", columnDefinition = "datetime DEFAULT CURRENT_TIMESTAMP", nullable = false)
-//    private LocalDateTime createDate;
+
     @CreationTimestamp
     @Column(name = "create_date", nullable = false, updatable = false)
     private LocalDateTime createDate;
