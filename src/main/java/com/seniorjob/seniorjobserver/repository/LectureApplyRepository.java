@@ -3,6 +3,8 @@ package com.seniorjob.seniorjobserver.repository;
 import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -28,6 +30,8 @@ public interface LectureApplyRepository extends JpaRepository<LectureApplyEntity
     void deleteByUser(UserEntity user);
 
     void deleteByLecture(LectureEntity lecture);
+
+    Page<LectureApplyEntity> findByLecture(LectureEntity lecture, Pageable pageable);
 
 }
 

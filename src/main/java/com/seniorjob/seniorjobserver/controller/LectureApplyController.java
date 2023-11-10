@@ -9,6 +9,9 @@ import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import com.seniorjob.seniorjobserver.service.LectureApplyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -85,10 +88,15 @@ public class LectureApplyController {
     // 해당 강좌에 신청한 회원 전체목록 조회 API
     // GET /list?lectureId=99
     @GetMapping("/list")
-    public ResponseEntity<List<LectureApplyDto>> getApplicantsByLectureId(@RequestParam("lectureId") Long lectureId) {
-        List<LectureApplyDto> applicants = lectureApplyService.getApplicantsByLectureId(lectureId);
+    public ResponseEntity<Page<LectureApplyDto>> getApplicantsByLectureId(
+            @RequestParam("lectureId") Long lectureId,
+            @RequestParam(defaultValue = "1", name = "page") int page,
+            @RequestParam(defaultValue = "10", name = "size") int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<LectureApplyDto> applicants = lectureApplyService.getApplicantsByLectureId(lectureId, pageable);
         return ResponseEntity.ok(applicants);
     }
+
 
     // 기존 : 회원목록에서 승인이 된 회원들을 일괄 모집마감하는 api
     // 로그인된 회원이 개설한 강좌중 하나의 강좌를 골라 회원목록에서 승인이 된 회원들을 일괄 모집마감하는 API

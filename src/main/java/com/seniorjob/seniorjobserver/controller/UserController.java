@@ -102,21 +102,6 @@ public class UserController {
         }
     }
 
-    // 회원전체목록API
-    // GET /api/users/all
-//    @GetMapping("/all")
-//    public ResponseEntity<?> getAllUsers() {
-//        try {
-//            List<UserDetailDto> users = userService.getAllUsers();
-//            return new ResponseEntity<>(users, HttpStatus.OK);
-//        } catch (IllegalArgumentException e) {
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
     // 로그인된 회원정보api
     // POST /api/users/detail
     @PostMapping("/detail")

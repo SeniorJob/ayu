@@ -2,12 +2,15 @@ package com.seniorjob.seniorjobserver.service;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureApplyEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
+import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
 import com.seniorjob.seniorjobserver.repository.LectureApplyRepository;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -98,20 +101,14 @@ public class LectureApplyService {
         return lectureApply;
     }
 
-    // 해당 강좌에 신청한 회원 목록 조회
-    public List<LectureApplyDto> getApplicantsByLectureId(Long lectureId) {
+    // 페이징을 추가한 해당 강좌에 신청한 회원 목록 조회 메소드
+    public Page<LectureApplyDto> getApplicantsByLectureId(Long lectureId, Pageable pageable) {
         LectureEntity lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new RuntimeException("해당 강좌를 찾을 수 없습니다. id: " + lectureId));
 
-        List<LectureApplyEntity> applicants = lectureApplyRepository.findByLecture(lecture);
+        Page<LectureApplyEntity> applicantsPage = lectureApplyRepository.findByLecture(lecture, pageable);
 
-        if (applicants.isEmpty()) {
-            throw new RuntimeException("해당 강좌에 신청한 회원이 없습니다. 강좌 ID: " + lectureId);
-        }
-
-        return applicants.stream()
-                .map(LectureApplyDto::new)
-                .collect(Collectors.toList());
+        return applicantsPage.map(apply -> new LectureApplyDto(apply));
     }
 
     // 기존 : 회원목록에서 승인이 된 회원들을 일괄 모집마감하는 api
