@@ -47,10 +47,6 @@ public class MypageProposalLectureController {
     }
 
     // 마이페이지(제안강좌) - 세션로그인후 자신이 개설한 강좌 제안 상세보기 API (참여강좌)
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myProposalDetail/{id}")
     public ResponseEntity<LectureProposalDto> getMyProposalDetail(
             @PathVariable("id") Long proposalId,
@@ -76,10 +72,6 @@ public class MypageProposalLectureController {
 
     // 마이페이지(제안강좌) - 세션로그인후 자신이 개설한 강좌제안 글 전체 조회 API
     // 모든강좌조회 : /api/myProposalLecture/filter?page=0&size=12&filter=latest&descending=true
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/filter")
     public ResponseEntity<Page<MypageLectureProposalDto>> getMyProposedLectures(
             @RequestParam(value = "title", required = false) String title,

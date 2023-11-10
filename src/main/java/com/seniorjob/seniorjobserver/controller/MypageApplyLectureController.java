@@ -62,10 +62,6 @@ public class MypageApplyLectureController {
     }
 
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 API
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myApplyLectureAll")
     public ResponseEntity<?> getMyAppliedLectures(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -81,10 +77,6 @@ public class MypageApplyLectureController {
 
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 필터링API
     // 필터링 : 제목 + 강좌상태 + 정렬(최신순, 오래된순, 인기순, 가격높은순, 가격낮은순)
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/filter")
     public ResponseEntity<?> getMyAppliedLecturesWithFilter(
             @RequestParam(value = "title", required = false) String title,
@@ -107,10 +99,6 @@ public class MypageApplyLectureController {
     }
 
     // 세션로그인후 자신이 신청이유 수정 API (신청강좌)
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @PutMapping("/updateLectureApplyReason")
     public ResponseEntity<?> updateLectureApplyReason(
             @RequestParam Long lectureId,
@@ -135,10 +123,6 @@ public class MypageApplyLectureController {
     }
 
     // 세션로그인후 자신이 신청한 강좌 삭제 API (신청강좌)
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/deleteLectureApply/{lectureId}")
     public ResponseEntity<?> deleteLectureApply(
             @PathVariable Long lectureId,
@@ -159,10 +143,6 @@ public class MypageApplyLectureController {
     }
 
     // 마이페이지(신청강좌) - 자신이 신청한 강좌 상세보기
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myAppliedLectureDetail/{lectureId}")
     public ResponseEntity<?> getMyAppliedLectureDetails(
             @PathVariable Long lectureId,
