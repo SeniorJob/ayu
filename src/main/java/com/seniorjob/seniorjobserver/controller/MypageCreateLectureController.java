@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,6 +63,10 @@ public class MypageCreateLectureController {
 
 
     // 세션로그인후 자신이 개설한 강좌목록 전체조회API - 회원으로 이동 (개설강좌)
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
+            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
+            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myCreateLectureAll")
     public ResponseEntity<?> getMyLectureAll(
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -77,6 +82,10 @@ public class MypageCreateLectureController {
     }
 
     // 마이페이지(개설강좌) - 자신이 개설한강좌 상세보기API
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
+            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
+            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myCreateLectureDetail/{lectureId}")
     public ResponseEntity<?> getLectureDetailsAndAppliedLectures(
             @PathVariable Long lectureId,
@@ -106,6 +115,10 @@ public class MypageCreateLectureController {
     // api/mypageCreateLecture/filter?title="강좌제목" == 제목만으로 검색
 
     @GetMapping("/filter")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
+            "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
+            "https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "filter", required = false) String filter,
