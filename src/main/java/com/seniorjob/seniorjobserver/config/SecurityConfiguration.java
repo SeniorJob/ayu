@@ -42,7 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .formLogin().disable()
                 .httpBasic().disable()
-                .cors().disable()
+                .cors().and()
                 .csrf().disable()
 
                 // exception handling시 클래스 추가
