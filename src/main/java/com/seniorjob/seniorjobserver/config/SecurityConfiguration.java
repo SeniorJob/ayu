@@ -49,6 +49,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 //.cors().configurationSource((CorsConfigurationSource) corsConfig).and()
                 .csrf().disable()
 
+                // CORS 필터추가
+                .addFilter(corsConfig.corsFilter())
+
                 // exception handling시 클래스 추가
                 .exceptionHandling()
 
@@ -64,7 +67,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureapply/list").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete", "/api/lectures/**").hasRole("USER")
+                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
+                        "/api/lectures/**").hasRole("USER")
 
                 .antMatchers( "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
                         "/api/lectureapply/apply/**", "/api/mypageCreateLecture/myCreateLectureDetail/**",
@@ -78,12 +82,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/mypageApplyLecture/filter", "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageApplyLecture/deleteLectureApply/**", "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/cancel", "/api/lectureapply/close",
-                        "/api/lectureapply/approve").authenticated()
+                        "/api/lectureapply/approve").hasRole("API")
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
                 .and()
-                .addFilter(corsConfig.corsFilter())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
