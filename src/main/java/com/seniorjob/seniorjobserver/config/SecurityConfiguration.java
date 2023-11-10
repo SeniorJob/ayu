@@ -1,6 +1,7 @@
 package com.seniorjob.seniorjobserver.config;
 
 import com.seniorjob.seniorjobserver.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -24,13 +25,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @SpringBootApplication
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private CorsConfig corsConfig;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CorsConfig corsConfig;
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -43,7 +45,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .formLogin().disable()
                 .httpBasic().disable()
-                .cors().disable()
+                //.cors().disable()
                 //.cors().configurationSource((CorsConfigurationSource) corsConfig).and()
                 .csrf().disable()
 
@@ -81,6 +83,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
                 // JwtFilter를 addFilterBefore로 등록
                 .and()
+                .addFilter(corsConfig.corsFilter())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 

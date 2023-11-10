@@ -66,11 +66,7 @@ public class LectureController {
 
 	// 강좌개설1단계 API
 	// POST /api/lectures/create
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
 	@PostMapping("/create")
-	@PreAuthorize("hasRole('USER')")
 	public ResponseEntity<LectureDto> createLecture(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("lectureDto") String lectureDtoJson,
@@ -109,10 +105,6 @@ public class LectureController {
 
 	// 강좌개설 1단계 정보를 불러와 수정API Controller
 	// PUT /api/lectures/{id}
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-	@PreAuthorize("hasRole('USER')")
 	@PutMapping("/{id}")
 	public ResponseEntity<LectureDto> updateLecture(
 			@PathVariable("id") Long id,
@@ -171,10 +163,6 @@ public class LectureController {
 	}
 
 	// 개설된강좌삭제API
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-	@PreAuthorize("hasRole('USER')")
 	@DeleteMapping("/delete/{create_id}")
 	public ResponseEntity<?> deleteMyLecture(
 			@PathVariable Long create_id,
@@ -196,10 +184,6 @@ public class LectureController {
 	}
 
 	// 세션로그인후 자신이 개설한 강좌목록 전체조회API - 회원으로 이동
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-	@PreAuthorize("hasRole('USER')")
 	@GetMapping("/myLectureAll")
 	public ResponseEntity<?> getMyLectureAll(@AuthenticationPrincipal UserDetails userDetails) {
 		UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
@@ -331,10 +315,6 @@ public class LectureController {
 
 	// 추천강좌API - 로그인한 회원의 카테고리를 기준으로 해당 카테고리가 일치하는 강좌중
 	// '신청가능상태'의 강좌의 current_participants가 많은순으로 지정한 갯수많큼 출력된다.
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-	@PreAuthorize("hasRole('USER')")
 	@GetMapping("/recommendLecture")
 	public ResponseEntity<List<RecommendLectureDto>> getRecommendLectures(
 			@RequestParam int limit,
