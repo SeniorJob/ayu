@@ -1,7 +1,6 @@
 package com.seniorjob.seniorjobserver.config;
 
 import com.seniorjob.seniorjobserver.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -19,20 +18,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 
 @SpringBootApplication
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final CorsConfig corsConfig;
+    @Autowired
+    private CorsConfig corsConfig;
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -45,12 +42,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .formLogin().disable()
                 .httpBasic().disable()
-                //.cors().disable()
-                //.cors().configurationSource((CorsConfigurationSource) corsConfig).and()
+                .cors().disable()
                 .csrf().disable()
-
-                // CORS 필터추가
-                .addFilter(corsConfig.corsFilter())
 
                 // exception handling시 클래스 추가
                 .exceptionHandling()
@@ -82,7 +75,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/mypageApplyLecture/filter", "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageApplyLecture/deleteLectureApply/**", "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/cancel", "/api/lectureapply/close",
-                        "/api/lectureapply/approve").hasRole("API")
+                        "/api/lectureapply/approve").authenticated()
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
