@@ -64,6 +64,11 @@ public class UserService {
             throw new IllegalArgumentException("모든 필수 항목을 입력해주세요!");
         }
 
+        if (userDto.getImgKey() == null || userDto.getImgKey().trim().isEmpty()) {
+            // S3 버킷에 업로드된 기본 이미지의 URL로 설정
+            userDto.setImgKey("https://seniorjob-bucket.s3.ap-northeast-2.amazonaws.com/imageDefalut.png");
+        }
+
         userDto.setEncryptionCode(passwordEncoder.encode(userDto.getEncryptionCode()));
         return userRepository.save(userDto.toEntity());
     }

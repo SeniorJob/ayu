@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfiguration;
 
 
 @SpringBootApplication
@@ -41,7 +42,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .formLogin().disable()
                 .httpBasic().disable()
-                .cors().disable()
+                .cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
+                .and()
                 .csrf().disable()
 
                 // exception handling시 클래스 추가
@@ -59,9 +61,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/api/lectureapply/list").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
-                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete").hasRole("USER")
+                .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete", "/api/lectures/**").hasRole("USER")
 
-                .antMatchers("/api/lectures/**", "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
+                .antMatchers( "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
                         "/api/lectureapply/apply/**", "/api/mypageCreateLecture/myCreateLectureDetail/**",
                         "/api/mypageCreateLecture/filter",
                         "/api/mypageApplyLecture/filter",
