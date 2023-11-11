@@ -198,10 +198,6 @@ public class LectureController {
 	}
 
 	// 세션로그인후 자신이 개설한 강좌 상세보기API- 회원으로 이동
-	@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:63342", "seniorjob.shop",
-			"http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com/",
-			"https://d3m49wt414afpm.cloudfront.net", "http://d3m49wt414afpm.cloudfront.net"})
-	@PreAuthorize("hasRole('USER')")
 	@GetMapping("/myLectureDetail/{id}")
 	public ResponseEntity<LectureDto> getMyLectureDetail(
 			@PathVariable("id") Long id,

@@ -2,6 +2,7 @@ package com.seniorjob.seniorjobserver.controller;
 
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
+import com.seniorjob.seniorjobserver.dto.FilterLectureDto;
 import com.seniorjob.seniorjobserver.dto.LectureProposalDto;
 import com.seniorjob.seniorjobserver.repository.LectureProposalRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
@@ -67,8 +68,8 @@ public class LectureProposalController {
             @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "filter", required = false, defaultValue = "true") String filter,
-            @RequestParam(defaultValue = "0", name = "page") int page,
-            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(defaultValue = "1", name = "page") int page,
+            @RequestParam(defaultValue = "10", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "true") boolean descending) {
 
         if (title != null && title.length() < 2) {
@@ -112,7 +113,8 @@ public class LectureProposalController {
         }
 
         // 페이징
-        Pageable pageable = PageRequest.of(page, size);
+        int zeroBasedPage = page -1;
+        Pageable pageable = PageRequest.of(zeroBasedPage, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), proposedLectures.size());
         Page<LectureProposalDto> pagedLectureDto = new PageImpl<>(proposedLectures.subList(start, end), pageable, proposedLectures.size());
