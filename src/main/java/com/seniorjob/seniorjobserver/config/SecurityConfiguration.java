@@ -56,26 +56,30 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**",
-                        "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular",
-                        "/api/lectureapply/list").permitAll() // 로그인과 로그아웃은 모두에게 허용
+                        "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular", "/api/lectures/all",
+                        "/api/lectureapply/list", "/api/lectureproposal/filter/**", "/api/lectureproposal/detail/**").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
                 .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
                         "/api/lectures/**").hasRole("USER")
 
-                .antMatchers( "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
+                .antMatchers( "/api/lectures/**", "/api/lectures/create", "/api/lectures/delete/**", "api/lectures/recommendLecture",
                         "/api/lectureapply/apply/**", "/api/mypageCreateLecture/myCreateLectureDetail/**",
                         "/api/mypageCreateLecture/filter",
                         "/api/mypageApplyLecture/filter",
                         "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageApplyLecture/deleteLectureApply/**",
-                        "/api/myProposalLecture/filter/myProposalDetail/**",
+                        "/api/myProposalLecture/filter",
                         "/api/myProposalLecture/myProposalDetail/**",
-                        "/api/mypageApplyLecture/filter", "/api/mypageApplyLecture/updateLectureApplyReason",
+                        "/api/mypageApplyLecture/updateLectureApplyReason",
                         "/api/mypageApplyLecture/deleteLectureApply/**", "/api/mypageApplyLecture/myAppliedLectureDetail/**",
                         "/api/lectureapply/apply/**", "/api/lectureapply/cancel", "/api/lectureapply/close",
-                        "/api/lectureapply/approve").authenticated()
+                        "/api/lectureapply/approve", "/api/lecturesStepTwo/**/weeks", "/api/lecturesStepTwo/lectures/**/weeks/**/plans",
+                        "/api/lecturesStepTwo/**/attendance", "/api/lecturesStepTwo/**/review", "/api/lecturesStepTwo/**/weeks/**/week-update",
+                        "/api/lecturesStepTwo/**/weeks/**/week-delete", "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-update",
+                        "/api/lecturesStepTwo/**/weeks/**/plans/**/plan-delete", "/api/lecturesStepTwo/**/update-attendance",
+                        "/api/lectureproposal/apply", "/api/lectureproposal/update/**", "/api/lectureproposal/delete/**").authenticated()
                 .anyRequest().authenticated()
 
                 // JwtFilter를 addFilterBefore로 등록
