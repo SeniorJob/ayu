@@ -55,7 +55,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 // 로그인, 회원가입 등 토큰이 없는 상태에서 요청이 들어오는 api는 permitAll설정
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**",
+                .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**", "/api/users/join",
                         "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular", "/api/lectures/all",
                         "/api/lectureapply/list", "/api/lectureproposal/filter/**", "/api/lectureproposal/detail/**").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
