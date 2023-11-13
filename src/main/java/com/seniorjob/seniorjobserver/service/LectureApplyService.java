@@ -79,12 +79,11 @@ public class LectureApplyService {
     }
 
     // 강좌참여신청취소
-    public LectureApplyEntity cancelLectureApply(Long userId, Long lectureId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    public LectureApplyEntity cancelLectureApply(Long leId) {
+        LectureApplyEntity lectureApply = lectureApplyRepository.findById(leId)
+                .orElseThrow(() -> new RuntimeException("신청된 강좌를 찾을 수 없습니다. leId: " + leId));
 
-        LectureEntity lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new RuntimeException("강좌를 찾을 수 없습니다. id: " + lectureId));
+        LectureEntity lecture = lectureApply.getLecture();
 
         // 신청강좌취소는 “모집중 = 신청가능상태”, “개설대기중 = 개설대기상태” 만 가능하다.
         if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태 &&
@@ -92,14 +91,12 @@ public class LectureApplyService {
             throw new RuntimeException("신청강좌취소는 “모집중 = 신청가능상태”, “개설대기중 = 개설대기상태” 만 가능합니다.");
         }
 
-        LectureApplyEntity lectureApply = lectureApplyRepository.findByUserAndLecture(user, lecture)
-                .orElseThrow(() -> new RuntimeException("신청된 강좌를 찾을 수 없습니다. userId: " + userId + ", lectureId: " + lectureId));
-
         lecture.decreaseCurrentParticipants();
         lectureApplyRepository.delete(lectureApply);
 
         return lectureApply;
     }
+
 
     // 페이징을 추가한 해당 강좌에 신청한 회원 목록 조회 메소드
     public Page<LectureApplyDto> getApplicantsByLectureId(Long lectureId, Pageable pageable) {
