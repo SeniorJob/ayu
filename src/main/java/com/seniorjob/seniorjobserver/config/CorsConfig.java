@@ -14,6 +14,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(
                         "http://localhost:5173",
+                        "http://localhost:4173",
                         "http://localhost:63342",
                         "seniorjob.shop",
                         "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com",
