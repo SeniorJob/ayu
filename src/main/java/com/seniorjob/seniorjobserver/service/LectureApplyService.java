@@ -5,6 +5,8 @@ import com.seniorjob.seniorjobserver.domain.entity.LectureEntity;
 import com.seniorjob.seniorjobserver.domain.entity.LectureProposalEntity;
 import com.seniorjob.seniorjobserver.domain.entity.UserEntity;
 import com.seniorjob.seniorjobserver.dto.LectureApplyDto;
+import com.seniorjob.seniorjobserver.dto.MyApplyDto;
+import com.seniorjob.seniorjobserver.dto.MyPageLectureApplyDto;
 import com.seniorjob.seniorjobserver.repository.LectureApplyRepository;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import com.seniorjob.seniorjobserver.repository.UserRepository;
@@ -173,6 +175,24 @@ public class LectureApplyService {
         }
         return myApplyLectures.stream()
                 .map(LectureApplyDto::new)
+                .collect(Collectors.toList());
+    }
+
+    // 로그인후 자신이 신청한 강좌ID 모음집
+    public List<MyApplyDto> getMyApply(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id: " + userId));
+
+        List<LectureApplyEntity> myApplyLectures = lectureApplyRepository.findByUser(user);
+        if (myApplyLectures.isEmpty()) {
+            throw new RuntimeException("신청하신 강좌가 없습니다.");
+        }
+
+        return myApplyLectures.stream()
+                .map(lectureApply -> new MyApplyDto(
+                        lectureApply,
+                        lectureApply.getLecture() // LectureEntity 객체 전달
+                ))
                 .collect(Collectors.toList());
     }
 
