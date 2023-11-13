@@ -12,6 +12,9 @@ import com.seniorjob.seniorjobserver.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +28,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/mypageApplyLecture")
@@ -78,24 +82,67 @@ public class MypageApplyLectureController {
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 필터링API
     // 필터링 : 제목 + 강좌상태 + 정렬(최신순, 오래된순, 인기순, 가격높은순, 가격낮은순)
     @GetMapping("/filter")
-    public ResponseEntity<?> getMyAppliedLecturesWithFilter(
+    public ResponseEntity<Page<MyPageLectureApplyDto>> getMyAppliedLecturesWithFilter(
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "status", required = false) LectureEntity.LectureStatus status,
             @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(defaultValue = "1", name = "page") int page,
-            @RequestParam(defaultValue = "12", name = "size") int size,
+            @RequestParam(defaultValue = "5", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "true") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        try {
-            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-            Page<MyPageLectureApplyDto> myFilteredAppliedLectures = myPageLectureApplyService.getFilteredMyAppliedLectures(currentUser.getUid(), title, status, filter, page, size);
-            return ResponseEntity.ok(myFilteredAppliedLectures);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        // 사용자가 신청한 전체 강좌 가져오기
+        List<MyPageLectureApplyDto> myAppliedLectures = myPageLectureApplyService.getMyAppliedLectures(currentUser.getUid());
+
+        // 필터링: 제목 검색
+        if (title != null && !title.isEmpty()) {
+            myAppliedLectures = myPageLectureApplyService.searchLecturesByTitle(currentUser.getUid(), title);
         }
+
+        // 필터링: 조건에 따라 lectureList 필터링
+        if (filter != null && !filter.isEmpty()) {
+            myAppliedLectures = myPageLectureApplyService.filterLectures(myAppliedLectures, filter, descending);
+        }
+
+        // 필터링: 모집중, 개설대기중, 진행중 상태에 따라 필터링
+        if (status != null && !status.isEmpty()) {
+            LectureEntity.LectureStatus lectureStatus;
+
+            switch (status) {
+                case "모집중":
+                    lectureStatus = LectureEntity.LectureStatus.신청가능상태;
+                    break;
+                case "개설대기중":
+                    lectureStatus = LectureEntity.LectureStatus.개설대기상태;
+                    break;
+                case "진행중":
+                    lectureStatus = LectureEntity.LectureStatus.진행상태;
+                    break;
+                case "완료강좌":
+                    lectureStatus = LectureEntity.LectureStatus.완료상태;
+                    break;
+                default:
+                    throw new IllegalArgumentException("잘못된 상태 키워드입니다.");
+            }
+
+            myAppliedLectures = myPageLectureApplyService.filterStatus(myAppliedLectures, lectureStatus);
+        }
+
+        // 검색결과에 해당하는 강좌가 없을 경우
+        if (myAppliedLectures.isEmpty()) {
+            throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.");
+        }
+
+        // 페이징
+        Pageable pageable = PageRequest.of(page -1, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), myAppliedLectures.size());
+        Page<MyPageLectureApplyDto> pagedMyAppliedLectures = new PageImpl<>(myAppliedLectures.subList(start, end), pageable, myAppliedLectures.size());
+
+        return ResponseEntity.ok(pagedMyAppliedLectures);
     }
 
     // 세션로그인후 자신이 신청이유 수정 API (신청강좌)
@@ -123,24 +170,24 @@ public class MypageApplyLectureController {
     }
 
     // 세션로그인후 자신이 신청한 강좌 삭제 API (신청강좌)
-    @DeleteMapping("/deleteLectureApply/{lectureId}")
-    public ResponseEntity<?> deleteLectureApply(
-            @PathVariable Long lectureId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-
-            LectureApplyEntity cancelledLectureApply = lectureApplyService.cancelLectureApply(currentUser.getUid(), lectureId);
-
-            return ResponseEntity.ok("강좌 신청이 취소되었습니다. Lecture ID: " + cancelledLectureApply.getLecture().getCreate_id());
-        } catch (EntityNotFoundException e) {
-            log.error("Lecture not found. ID: " + lectureId, e);
-            return ResponseEntity.badRequest().body("강좌를 찾을 수 없습니다. ID: " + lectureId);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @DeleteMapping("/deleteLectureApply/{lectureId}")
+//    public ResponseEntity<?> deleteLectureApply(
+//            @PathVariable Long lectureId,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        try {
+//            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+//                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+//
+//            LectureApplyEntity cancelledLectureApply = lectureApplyService.cancelLectureApply(currentUser.getUid(), lectureId);
+//
+//            return ResponseEntity.ok("강좌 신청이 취소되었습니다. Lecture ID: " + cancelledLectureApply.getLecture().getCreate_id());
+//        } catch (EntityNotFoundException e) {
+//            log.error("Lecture not found. ID: " + lectureId, e);
+//            return ResponseEntity.badRequest().body("강좌를 찾을 수 없습니다. ID: " + lectureId);
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 
     // 마이페이지(신청강좌) - 자신이 신청한 강좌 상세보기
     @GetMapping("/myAppliedLectureDetail/{lectureId}")

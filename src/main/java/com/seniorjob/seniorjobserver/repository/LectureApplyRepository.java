@@ -32,6 +32,7 @@ public interface LectureApplyRepository extends JpaRepository<LectureApplyEntity
     void deleteByLecture(LectureEntity lecture);
 
     Page<LectureApplyEntity> findByLecture(LectureEntity lecture, Pageable pageable);
+    List<LectureApplyEntity> findByUserUid(Long uid);
 
 }
 

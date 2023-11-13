@@ -113,7 +113,7 @@ public class MypageCreateLectureController {
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "5", name = "size") int size,
-            @RequestParam(value = "descending", defaultValue = "false") boolean descending,
+            @RequestParam(value = "descending", defaultValue = "true") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
@@ -148,6 +148,7 @@ public class MypageCreateLectureController {
                     break;
                 case "완료강좌":
                     lectureStatus = LectureEntity.LectureStatus.완료상태;
+                    break;
                 default:
                     throw new IllegalArgumentException("잘못된 상태 키워드입니다.");
             }
@@ -167,6 +168,4 @@ public class MypageCreateLectureController {
         Page<LectureDto> pagedLectureDto = new PageImpl<>(myLectureAll.subList(start, end), pageable, myLectureAll.size());
         return ResponseEntity.ok(pagedLectureDto);
     }
-
-
 }

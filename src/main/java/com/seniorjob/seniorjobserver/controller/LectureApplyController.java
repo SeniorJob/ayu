@@ -65,18 +65,18 @@ public class LectureApplyController {
 
     // 강좌 신청 취소 API
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/cancel/{lectureId}")
+    @DeleteMapping("/cancel/{leId}")
     public ResponseEntity<?> cancelLectureApply(
-            @PathVariable Long lectureId,
+            @PathVariable Long leId,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-            LectureApplyEntity canceledData = lectureApplyService.cancelLectureApply(currentUser.getUid(), lectureId);
+            LectureApplyEntity canceledData = lectureApplyService.cancelLectureApply(leId);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("message", currentUser.getName() + " 님, " + lectureId + " 번 강좌 신청이 취소되었습니다.");
+            response.put("message", currentUser.getName() + " 님, " + leId + " 번 강좌 신청이 취소되었습니다.");
 
             return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -84,6 +84,7 @@ public class LectureApplyController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     // 해당 강좌에 신청한 회원 전체목록 조회 API
     // GET /list?lectureId=99

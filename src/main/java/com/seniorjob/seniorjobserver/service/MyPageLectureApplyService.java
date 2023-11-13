@@ -11,10 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -23,6 +20,7 @@ public class MyPageLectureApplyService {
 
     private final LectureRepository lectureRepository;
     private final LectureApplyRepository lectureApplyRepository;
+    private final LectureApplyService lectureApplyService;
     private final UserRepository userRepository;
     private final WeekRepository weekRepository;
     private final WeekPlanRepository weekPlanRepository;
@@ -30,13 +28,15 @@ public class MyPageLectureApplyService {
 
     @Autowired
     public MyPageLectureApplyService(UserRepository userRepository, LectureRepository lectureRepository, LectureApplyRepository lectureApplyRepository,
-                                     WeekRepository weekRepository, WeekPlanRepository weekPlanRepository) {
+                                     WeekRepository weekRepository, WeekPlanRepository weekPlanRepository,
+                                     LectureApplyService lectureApplyService) {
         this.userRepository = userRepository;
         this.lectureRepository = lectureRepository;
         this.lectureApplyRepository = lectureApplyRepository;
         this.weekRepository = weekRepository;
         this.weekPlanRepository = weekPlanRepository;
         //this.attendanceRepository = attendanceRepository;
+        this.lectureApplyService = lectureApplyService;
     }
 
     public LectureApplyDto getLectureApplyById(Long id) {
@@ -44,103 +44,6 @@ public class MyPageLectureApplyService {
                 .orElseThrow(() -> new RuntimeException("해당 ID에 맞는 강좌 신청을 찾을 수 없습니다: " + id));
 
         return new LectureApplyDto(lectureApply);
-    }
-
-    // 마이페이지(신청강좌) - 전체목록
-    public List<LectureApplyDto> getMyAppliedLectures(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id: " + userId));
-
-        List<LectureApplyEntity> myApplyLectures = lectureApplyRepository.findByUser(user);
-
-        if (myApplyLectures.isEmpty()) {
-            throw new RuntimeException("신청하신 강좌가 없습니다..");
-        }
-        return myApplyLectures.stream()
-                .map(LectureApplyDto::new)
-                .collect(Collectors.toList());
-    }
-
-    // 마이페이지(신청강좌) - 목록필터링
-    public Page<MyPageLectureApplyDto> getFilteredMyAppliedLectures(Long userId, String title, LectureEntity.LectureStatus status, String sort, int page, int size) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id: " + userId));
-
-        List<LectureApplyEntity> myApplyLectures = lectureApplyRepository.findByUser(user);
-        if (myApplyLectures.isEmpty()) {
-            throw new RuntimeException("신청하신 강좌가 없습니다..");
-        }
-
-        List<MyPageLectureApplyDto> lectureApplyDtos = myApplyLectures.stream()
-                .map(applyEntity -> {
-                    MyPageLectureApplyDto dto = new MyPageLectureApplyDto();
-                    dto.setCreate_id(applyEntity.getLecture().getCreate_id());
-                    dto.setLe_id(applyEntity.getLeId());
-                    dto.setUid(applyEntity.getUser().getUid());
-                    dto.setCreator(applyEntity.getLecture().getCreator());
-                    dto.setCategory(applyEntity.getLecture().getCategory());
-                    dto.setTitle(applyEntity.getLecture().getTitle());
-                    dto.setRecruitEnd_date(applyEntity.getLecture().getRecruitEnd_date());
-                    dto.setStart_date(applyEntity.getLecture().getStart_date());
-                    dto.setEnd_date(applyEntity.getLecture().getEnd_date());
-                    dto.setMax_participants(applyEntity.getLecture().getMaxParticipants());
-                    dto.setCurrent_participants(applyEntity.getLecture().getCurrentParticipants());
-                    dto.setRegion(applyEntity.getLecture().getRegion());
-                    dto.setPrice(applyEntity.getLecture().getPrice());
-                    dto.setStatus(applyEntity.getLecture().getStatus());
-                    dto.setCreatedDate(applyEntity.getLecture().getCreatedDate());
-                    dto.getDaysUntilRecruitEndMessage();
-                    return dto;
-                })
-                .collect(Collectors.toList());
-
-        // 제목 필터링
-        if (title != null && !title.isEmpty()) {
-            if (title.length() >= 2) { // 2글자 이상인 경우에만 검색 수행
-                lectureApplyDtos = lectureApplyDtos.stream()
-                        .filter(lecture -> lecture.getTitle().contains(title))
-                        .collect(Collectors.toList());
-
-                if (lectureApplyDtos.isEmpty()) {
-                    throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.ㅠㅠ");
-                }
-            } else {
-                throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
-            }
-        }
-
-        // 상태 필터링
-        if (status != null) {
-            lectureApplyDtos = lectureApplyDtos.stream()
-                    .filter(lecture -> lecture.getStatus().equals(status))
-                    .collect(Collectors.toList());
-        }
-
-        // 정렬
-        switch (sort) {
-            case "최신순":
-                lectureApplyDtos.sort(Comparator.comparing(MyPageLectureApplyDto::getCreatedDate).reversed());
-                break;
-            case "오래된순":
-                lectureApplyDtos.sort(Comparator.comparing(MyPageLectureApplyDto::getCreatedDate));
-                break;
-            case "인기순":
-                lectureApplyDtos.sort(Comparator.comparing(MyPageLectureApplyDto::getCurrent_participants).reversed());
-                break;
-            case "가격높은순":
-                lectureApplyDtos.sort(Comparator.comparing(MyPageLectureApplyDto::getPrice).reversed());
-                break;
-            case "가격낮은순":
-                lectureApplyDtos.sort(Comparator.comparing(MyPageLectureApplyDto::getPrice));
-                break;
-        }
-
-        // 페이지네이션
-        Pageable pageable = PageRequest.of(page -1, size);
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), lectureApplyDtos.size());
-
-        return new PageImpl<>(lectureApplyDtos.subList(start, end), pageable, lectureApplyDtos.size());
     }
 
     // 로그인후 자신이 신청한 강좌 상세보기
@@ -178,6 +81,110 @@ public class MyPageLectureApplyService {
 
         // 모든 정보를 DTO에 담아 반환
         return new MyPageLectureApplyDetailDto(lectureApplyDto, lectureDto, weekDtos, weekPlanDtos);
+    }
+
+    // 마이페이지(신청강좌) - 목록필터링
+
+    // 강좌ID기반 강좌상태 가져오는 메서드
+    public LectureEntity.LectureStatus getLectureStatus(Long create_id) {
+        LectureEntity lectureEntity = lectureRepository.findById(create_id)
+                .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + create_id));
+        return lectureEntity.getStatus();
+    }
+
+    // 마이페이지(신청강좌) - 자신이 신청한 강좌목록
+    public List<MyPageLectureApplyDto> getMyAppliedLectures(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id: " + userId));
+
+        List<LectureApplyEntity> myApplyLectures = lectureApplyRepository.findByUser(user);
+        if (myApplyLectures.isEmpty()) {
+            throw new RuntimeException("신청하신 강좌가 없습니다.");
+        }
+
+        return myApplyLectures.stream()
+                .map(lectureApply -> new MyPageLectureApplyDto(
+                        lectureApply,
+                        lectureApply.getLecture() // LectureEntity 객체 전달
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // 강좌검색 : 제목
+    public List<MyPageLectureApplyDto> searchLecturesByTitle(Long uid, String title) {
+        if (title == null || title.length() < 2) {
+            throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
+        }
+
+        List<MyPageLectureApplyDto> resultList = new ArrayList<>();
+
+        // 사용자가 신청한 강좌 목록을 가져옴
+        List<LectureApplyEntity> userAppliedLectures = lectureApplyRepository.findByUserUid(uid);
+
+        // 제목에 해당하는 강좌만 필터링
+        userAppliedLectures.stream()
+                .filter(lectureApply -> lectureApply.getLecture().getTitle().contains(title))
+                .forEach(lectureApply -> {
+                    resultList.add(new MyPageLectureApplyDto(lectureApply, lectureApply.getLecture()));
+                });
+
+        if (resultList.isEmpty()) {
+            throw new NoSuchElementException("검색결과에 해당하는 강좌가 없습니다.ㅠㅠ");
+        }
+
+        return resultList;
+    }
+
+    // 강좌정렬
+    // 최신순으로 강좌 정렬 최신 = true 오래된 = false
+    public List<MyPageLectureApplyDto> sortLecturesByCreatedDate(List<MyPageLectureApplyDto> appliedLectures, boolean descending) {
+        appliedLectures.sort((a, b) -> descending ?
+                b.getCreatedDate().compareTo(a.getCreatedDate()) :
+                a.getCreatedDate().compareTo(b.getCreatedDate()));
+        return appliedLectures;
+    }
+
+    // 기존코드 인기순 : max_participant가많은순 -> 강좌 참여하기를 만들때 실제참여자가 많은순으로 변경할것임
+    // 수정된 인기순 : 강좌에 참여한 사람이 많은 강좌순 : 참여자수 current_participants
+    public List<MyPageLectureApplyDto> sortLecturesByPopularity(List<MyPageLectureApplyDto> appliedLectures, boolean descending) {
+        appliedLectures.sort((a, b) -> descending ?
+                b.getCurrent_participants() - a.getCurrent_participants() :
+                a.getCurrent_participants() - b.getCurrent_participants());
+        return appliedLectures;
+    }
+
+    // 가격순 : prices(낮은순 높은순)
+    public List<MyPageLectureApplyDto> sortLecturesByPrice(List<MyPageLectureApplyDto> appliedLectures, boolean descending) {
+        appliedLectures.sort((a, b) -> descending ?
+                b.getPrice().compareTo(a.getPrice()) :
+                a.getPrice().compareTo(b.getPrice()));
+        return appliedLectures;
+    }
+
+    // 강좌상태검색
+    public List<MyPageLectureApplyDto> filterStatus(List<MyPageLectureApplyDto> appliedLectures, LectureEntity.LectureStatus status) {
+        return appliedLectures.stream()
+                .filter(lecture -> lecture.getStatus() == status)
+                .collect(Collectors.toList());
+    }
+
+    // 필터링 : 제목검색 -> 최신순,오래된순, 가격높은순, 가격낮은순, 인기순, 지역(시,군),
+    public List<MyPageLectureApplyDto> filterLectures(List<MyPageLectureApplyDto> appliedLectures, String filter, boolean descending) {
+        switch (filter){
+            case "latest":
+                return sortLecturesByCreatedDate(appliedLectures, descending);
+            case "price":
+                return sortLecturesByPrice(appliedLectures, descending);
+            case "popularity":
+                return sortLecturesByPopularity(appliedLectures, descending);
+            default:
+                throw new IllegalArgumentException("잘못된 필터조건");
+        }
+    }
+
+    //페이징
+    public Page<LectureEntity> getLectures(Pageable pageable) {
+        return lectureRepository.findAll(pageable);
     }
 
     private LectureDto convertToDto(LectureEntity lectureEntity) {
