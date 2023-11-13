@@ -65,6 +65,20 @@ public class MypageApplyLectureController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    // 로그인후 자신이 신청한 강좌ID 모음집
+    @GetMapping("/myApply")
+    public ResponseEntity<?> getMyApply(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
+
+            List<MyApplyDto> myAppliedLectures = lectureApplyService.getMyApply(currentUser.getUid());
+            return ResponseEntity.ok(myAppliedLectures);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // 마이페이지(신청강좌) - 세션로그인후 자신이 신청한 강좌 전체 조화 API
     @GetMapping("/myApplyLectureAll")
     public ResponseEntity<?> getMyAppliedLectures(@AuthenticationPrincipal UserDetails userDetails) {
