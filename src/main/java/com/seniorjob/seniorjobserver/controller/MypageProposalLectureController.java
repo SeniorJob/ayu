@@ -78,7 +78,7 @@ public class MypageProposalLectureController {
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "5", name = "size") int size,
-            @RequestParam(value = "descending", defaultValue = "false") boolean descending,
+            @RequestParam(value = "descending", defaultValue = "true") boolean descending,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
