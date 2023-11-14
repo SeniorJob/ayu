@@ -66,9 +66,11 @@ public class LectureService {
         this.authenticationManager = authenticationManager;
     }
 
+    // 강좌목록 가져오기 - open_status = draft제외
     public List<LectureDto> getAllLectures() {
         List<LectureEntity> lectureEntities = lectureRepository.findAll();
         return lectureEntities.stream()
+                .filter(lecture -> lecture.getOpenStatus() != LectureEntity.LectureOpenStatus.draft) // 'draft' 상태 제외
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -130,6 +132,7 @@ public class LectureService {
         LocalDateTime recruitEndDate = lectureDto.getRecruitEnd_date();
         LectureEntity lectureEntity = lectureDto.toEntity(userEntity);
         lectureEntity.setUser(userEntity);
+        lectureEntity.setDraftStatus(); // 상태를 '작성 중'으로 설정
         lectureDto.setUid(userEntity.getUid());
         lectureDto.setUserName(userEntity.getName());
         validateLectureData(lectureDto);
@@ -300,12 +303,13 @@ public class LectureService {
         return new LectureDetailDto(lectureDto, weekDtos, weekPlanDtos);
     }
 
-    // 세션로그인후 자신이 개설한 강좌목록 전체조회
+    // 마이페이지(개설강좌) - 세션로그인후 자신이 개설한 강좌목록 전체조회
     public List<LectureDto> getMyLectureAll(Long userId){
         UserEntity user = userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-        List<LectureEntity> myLectureAll = lectureRepository.findAllByUser(user);
+        List<LectureEntity> myLectureAll = lectureRepository.findAllByUserAndOpenStatus(user, LectureEntity.LectureOpenStatus.published);
         return myLectureAll.stream().map(this::convertToDto).collect(Collectors.toList());
     }
+
 
     // 세션로그인후 자신이 개설한 강좌 상세보기
     public LectureDto getMyLectureDetail(Long id, Long userId) {
@@ -326,8 +330,8 @@ public class LectureService {
         return lectureEntity.getStatus();
     }
 
-    // 강좌검색 : 제목
-    public List<LectureDto> searchLecturesByTitle(String title) {
+    // 강좌탐색 강좌검색 : 제목
+    public List<LectureDto> searchLecturesByTitleLecture(String title) {
         List<LectureDto> lectureList = new ArrayList<>();
         if (title.length() >= 2) { // 2글자 이상인 경우에만 검색 수행
             List<LectureEntity> lectureEntities = lectureRepository.findByTitleContaining(title);
@@ -344,7 +348,8 @@ public class LectureService {
         return lectureList;
     }
 
-    public List<LectureDto> searchLecturesByTitle(List<LectureDto> myLectureAll, String title) {
+    // 마이페이지(개설강좌)
+    public List<LectureDto> searchLecturesByTitleMyLecture(List<LectureDto> myLectureAll, String title) {
         if (title.length() < 2) {
             throw new IllegalArgumentException("검색어는 \"2글자\" 이상 입력해주세요!");
         }
@@ -479,7 +484,10 @@ public class LectureService {
     // 인기강좌 - 비로그인
     public List<RecommendLectureDto> getPopularLecturesAsRecommend(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "currentParticipants"));
-        List<LectureEntity> popularLectures = lectureRepository.findByStatusOrderByCurrentParticipantsDesc(LectureEntity.LectureStatus.신청가능상태, pageable);
+        List<LectureEntity> popularLectures = lectureRepository.findByStatusAndOpenStatusOrderByCurrentParticipantsDesc(
+                LectureEntity.LectureStatus.신청가능상태,
+                LectureEntity.LectureOpenStatus.published,
+                pageable);
 
         return popularLectures.stream()
                 .map(lecture -> RecommendLectureDto.from(lecture))
@@ -520,6 +528,7 @@ public class LectureService {
                 .account_name(lectureEntity.getAccount_name())
                 .account_number(lectureEntity.getAccount_number())
                 .status(lectureEntity.getStatus())
+                .open_status(lectureEntity.getOpenStatus())
                 .createdDate(lectureEntity.getCreatedDate())
                 .build();
     }

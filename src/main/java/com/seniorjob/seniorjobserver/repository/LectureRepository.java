@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
@@ -20,8 +19,15 @@ public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
     List<LectureEntity> findAllByUser(UserEntity user);
 
     List<LectureEntity> findByUser(UserEntity user);
-    List<LectureEntity> findByStatusOrderByCurrentParticipantsDesc(LectureEntity.LectureStatus status, Pageable pageable);
-    List<LectureEntity> findByCategoryAndStatusAndCreatorNotOrderByCurrentParticipantsDesc(String category, LectureEntity.LectureStatus status, String creator, Pageable pageable);
+    List<LectureEntity> findAllByUserAndOpenStatus(UserEntity user, LectureEntity.LectureOpenStatus openStatus);
+
+    List<LectureEntity> findByStatusAndOpenStatusOrderByCurrentParticipantsDesc(
+            LectureEntity.LectureStatus status,
+            LectureEntity.LectureOpenStatus openStatus,
+            Pageable pageable);
+    List<LectureEntity> findByCategoryAndStatusAndCreatorNotOrderByCurrentParticipantsDesc(
+            String category, LectureEntity.LectureStatus status,
+            String creator, Pageable pageable);
 }
 
 

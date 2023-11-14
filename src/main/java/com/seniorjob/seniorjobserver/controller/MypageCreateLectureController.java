@@ -124,7 +124,7 @@ public class MypageCreateLectureController {
 
         // 필터링: 제목 검색
         if (title != null && !title.isEmpty()) {
-            myLectureAll = lectureService.searchLecturesByTitle(myLectureAll ,title);
+            myLectureAll = lectureService.searchLecturesByTitleMyLecture(myLectureAll ,title);
         }
 
         // 필터링: 조건에 따라 lectureList 필터링

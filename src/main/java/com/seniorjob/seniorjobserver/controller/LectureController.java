@@ -9,7 +9,6 @@ import com.seniorjob.seniorjobserver.dto.LectureDetailDto;
 import com.seniorjob.seniorjobserver.dto.RecommendLectureDto;
 import com.seniorjob.seniorjobserver.repository.LectureRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -236,7 +235,7 @@ public class LectureController {
 
 		// 필터링 : 제목 검색
 		if (title != null && !title.isEmpty()) {
-			lectureList = lectureService.searchLecturesByTitle(title);
+			lectureList = lectureService.searchLecturesByTitleLecture(title);
 		} else {
 			lectureList = lectureService.getAllLectures();
 		}

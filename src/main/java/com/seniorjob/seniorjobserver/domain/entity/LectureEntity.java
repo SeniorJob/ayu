@@ -15,13 +15,22 @@ import java.util.List;
 @Entity
 @Table(name = "lecture")
 public class LectureEntity extends TimeEntity {
-
     public enum LectureStatus {
         신청가능상태,
         개설대기상태,
         진행상태,
         철회상태,
         완료상태
+    }
+
+    public enum LectureOpenStatus {
+        draft, published;
+    }
+    public void setDraftStatus() {
+        this.openStatus = LectureOpenStatus.draft;
+    }
+    public void setPublishedStatus() {
+        this.openStatus = LectureOpenStatus.published;
     }
 
     public void updateStatus() {
@@ -134,6 +143,10 @@ public class LectureEntity extends TimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status",nullable = false)
     private LectureStatus status = LectureStatus.신청가능상태;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "open_status")
+    private LectureOpenStatus openStatus = LectureOpenStatus.draft;
 
     private Boolean recruitmentClosed;
 
