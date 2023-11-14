@@ -118,7 +118,7 @@ public class LectureStepTwoService {
         return new AttendanceDto(attendanceEntity);
     }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Service == 상세정보로 활용
+    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Service
     public CreateLectureFullInfoDto getFullLectureInfo(Long lectureId) {
         // 강좌개설1단계 : 강좌 정보 가져오기
         LectureEntity lecture = lectureRepository.findById(lectureId)
@@ -253,6 +253,14 @@ public class LectureStepTwoService {
         attendanceRepository.save(attendanceEntity);
 
         return new AttendanceDto(attendanceEntity);
+    }
+
+    // 강좌개설 3단계 개설 Service
+    public void publishLecture(Long lectureId) {
+        LectureEntity lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
+        lecture.setPublishedStatus();
+        lectureRepository.save(lecture);
     }
 
     private LectureDto convertToDto(LectureEntity lecture) {

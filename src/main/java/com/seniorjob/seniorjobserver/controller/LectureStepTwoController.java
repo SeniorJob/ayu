@@ -17,6 +17,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/lecturesStepTwo")
 public class LectureStepTwoController {
@@ -114,6 +117,17 @@ public class LectureStepTwoController {
             @PathVariable Long lectureId){
             CreateLectureFullInfoDto lectureFullInfo = lectureStepTwoService.getFullLectureInfo(lectureId);
             return ResponseEntity.ok(lectureFullInfo);
+    }
+
+    // 강좌개설 3단계 개설API Controller
+    @GetMapping("/{lectureId}/publish")
+    public ResponseEntity<?> publishLecture(@PathVariable Long lectureId) {
+        lectureStepTwoService.publishLecture(lectureId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "강좌번호 : " + lectureId + "가 정상적으로 개설되었습니다.");
+
+        return ResponseEntity.ok(response);
     }
 
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "이전단계"로 돌아가 수정하는 로직

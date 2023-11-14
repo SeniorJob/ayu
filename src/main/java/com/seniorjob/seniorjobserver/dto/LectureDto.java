@@ -53,6 +53,7 @@ public class LectureDto {
     private String account_name;
     private String account_number;
     private LectureEntity.LectureStatus status;
+    private LectureEntity.LectureOpenStatus openStatus;
     public LectureEntity.LectureStatus getStatus() {
         return status;
     }
@@ -98,7 +99,8 @@ public class LectureDto {
                       LocalDateTime start_date, LocalDateTime end_date, Integer max_participants,
                       Integer current_participants, String region, Integer price,
                       String bank_name, String account_name, String account_number,
-                      LectureEntity.LectureStatus status, LocalDateTime createdDate) {
+                      LectureEntity.LectureStatus status, LectureEntity.LectureOpenStatus open_status,
+                      LocalDateTime createdDate) {
         this.create_id = create_id;
         this.uid = uid;
         this.userName = userName;
@@ -120,6 +122,7 @@ public class LectureDto {
         this.account_name = account_name;
         this.account_number = account_number;
         this.status = status;
+        this.openStatus = open_status;
         this.createdDate = createdDate;
     }
 }
