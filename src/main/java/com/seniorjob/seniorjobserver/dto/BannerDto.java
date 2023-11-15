@@ -12,4 +12,5 @@ import lombok.Setter;
 public class BannerDto {
     private int bannerId;
     private String bannerUrl;
+    private String bannerTitle;
 }
