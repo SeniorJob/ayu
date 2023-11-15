@@ -57,7 +57,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/users/**", "/api/auth/logout", "/api/lecturesStepTwo/*/review/**", "/api/users/join",
                         "/api/lectures/filter", "/api/lectures/detail/**", "/api/lectures/popular", "/api/lectures/all",
-                        "/api/lectureapply/list", "/api/lectureproposal/filter/**", "/api/lectureproposal/detail/**").permitAll() // 로그인과 로그아웃은 모두에게 허용
+                        "/api/lectureapply/list", "/api/lectureproposal/filter/**", "/api/lectureproposal/detail/**",
+                        "/api/banner").permitAll() // 로그인과 로그아웃은 모두에게 허용
 
                 // 권한테스트
                 .antMatchers("/api/users/detail", "api/users/update", "/api/users/delete",
