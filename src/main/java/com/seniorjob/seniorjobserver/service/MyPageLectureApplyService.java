@@ -58,11 +58,15 @@ public class MyPageLectureApplyService {
                 .orElseThrow(() -> new ResourceNotFoundException("해당하는 강좌를 찾을 수 없습니다."));
 
         // Convert LectureEntity to LectureDto
-        LectureDto lectureDto = convertToDto(lectureEntity);
+
 
         // 3. 강좌 신청 정보 조회
         LectureApplyEntity lectureApplyEntity = lectureApplyRepository.findByUserAndLecture(currentUser, lectureEntity)
                 .orElseThrow(() -> new ResourceNotFoundException("신청된 강좌 정보를 찾을 수 없습니다."));
+
+        Long leId = lectureApplyEntity.getLeId();
+
+        LectureDto lectureDto = convertToDto(lectureEntity, leId);
 
         LectureApplyDto lectureApplyDto = new LectureApplyDto(lectureApplyEntity);
 
@@ -187,11 +191,12 @@ public class MyPageLectureApplyService {
         return lectureRepository.findAll(pageable);
     }
 
-    private LectureDto convertToDto(LectureEntity lectureEntity) {
+    private LectureDto convertToDto(LectureEntity lectureEntity, Long leId) {
         UserEntity userEntity = lectureEntity.getUser();
         return LectureDto.builder()
                 .create_id(lectureEntity.getCreate_id())
                 .uid(userEntity.getUid())
+                .leId(leId)
                 .userName(userEntity.getName())
                 .creator(lectureEntity.getCreator())
                 .category(lectureEntity.getCategory())
