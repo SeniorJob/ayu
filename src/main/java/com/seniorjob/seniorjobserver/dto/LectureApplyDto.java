@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class LectureApplyDto {
-    @JsonIgnore
+
     private Long leId;
 
     @JsonIgnore

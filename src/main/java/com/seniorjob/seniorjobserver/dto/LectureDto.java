@@ -16,6 +16,7 @@ public class LectureDto {
 
     private Long create_id;
     private Long uid;
+    private Long leId;
     private String userName;
     private String creator;
     private String category;
@@ -93,7 +94,7 @@ public class LectureDto {
     }
 
     @Builder
-    public LectureDto(Long create_id, Long uid, String userName, String creator, String category,
+    public LectureDto(Long create_id, Long uid, Long leId, String userName, String creator, String category,
                       String image_url, String title,
                       String content, String learning_target, Integer week, LocalDateTime recruitEnd_date,
                       LocalDateTime start_date, LocalDateTime end_date, Integer max_participants,
@@ -103,6 +104,7 @@ public class LectureDto {
                       LocalDateTime createdDate) {
         this.create_id = create_id;
         this.uid = uid;
+        this.leId = leId;
         this.userName = userName;
         this.creator = creator;
         this.category = category;
