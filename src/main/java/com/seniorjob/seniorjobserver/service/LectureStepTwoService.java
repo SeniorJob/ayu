@@ -251,7 +251,7 @@ public class LectureStepTwoService {
 //
 //        // 강좌 상태 검사
 //        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
-//            throw new IllegalStateException("강좌 상태가 '신청가능상태 = 모집중'가 아닙니다. 수료조건 출석횟수를 수정할 수 없습니다.");
+//            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
 //        }
 //
 //        if (requiredAttendance <= 0 || requiredAttendance >= 10) {
