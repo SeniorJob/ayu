@@ -233,27 +233,27 @@ public class LectureStepTwoService {
     }
 
     // 3. attendance수정 Service 출석조건은 수정만가능하다.
-    public AttendanceDto updateAttendanceCondition(Long lectureId, int requiredAttendance) {
-        LectureEntity lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
-
-        // 강좌 상태 검사
-        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
-            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
-        }
-
-        if (requiredAttendance <= 0 || requiredAttendance >= 10) {
-            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
-        }
-
-        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
-                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
-
-        attendanceEntity.setRequiredAttendance(requiredAttendance);
-        attendanceRepository.save(attendanceEntity);
-
-        return new AttendanceDto(attendanceEntity);
-    }
+//    public AttendanceDto updateAttendanceCondition(Long lectureId, int requiredAttendance) {
+//        LectureEntity lecture = lectureRepository.findById(lectureId)
+//                .orElseThrow(() -> new ResourceNotFoundException("해당 강좌를 찾을 수 없습니다."));
+//
+//        // 강좌 상태 검사
+//        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
+//            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
+//        }
+//
+//        if (requiredAttendance <= 0 || requiredAttendance >= 10) {
+//            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
+//        }
+//
+//        AttendanceEntity attendanceEntity = attendanceRepository.findByCreate_id(lecture)
+//                .orElseThrow(() -> new ResourceNotFoundException("출석 조건 정보를 찾을 수 없습니다."));
+//
+//        attendanceEntity.setRequiredAttendance(requiredAttendance);
+//        attendanceRepository.save(attendanceEntity);
+//
+//        return new AttendanceDto(attendanceEntity);
+//    }
 
     // 강좌개설 3단계 개설 Service
     public void publishLecture(Long lectureId) {
