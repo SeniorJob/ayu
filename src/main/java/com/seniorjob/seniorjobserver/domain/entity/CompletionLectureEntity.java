@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "completion_lecture")
+@Table(name = "completion_lecture") // 개별 수료증목록으로 사용
 public class CompletionLectureEntity extends TimeEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

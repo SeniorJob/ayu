@@ -96,19 +96,31 @@ public class LectureStepTwoService {
                 details);
     }
 
+    // 강좌개설 1단계의 id에 해당하는 주차별 상세 내용의 개수를 구하는 메서드
+    public int getTotalWeekPlanCount(Long lectureId) {
+        List<WeekEntity> weeks = weekRepository.findByLectureId(lectureId);
+        return weeks.stream()
+                .mapToInt(week -> week.getPlans().size())
+                .sum();
+    }
+
     // 강좌개설 2단계에서 수료 출석 조건 설정 Service
 //    public AttendanceDto setAttendanceCondition(Long lectureId, int requireAttendance){
 //        LectureEntity lecture = lectureRepository.findById(lectureId)
-//                .orElseThrow(()-> new ResourceNotFoundException("강좌개설2단계에서 해당 주차를 찾을 수 없습니다."));
+//                .orElseThrow(()-> new ResourceNotFoundException(
+//                        "입력하신 강좌개설 1단계를 찾을 수 없습니다. 강좌개설1단계 createid / lectureid를 확인해주세요!"));
 //
 //        // 강좌 상태 검사
 //        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
-//            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
+//            throw new IllegalStateException("강좌 상태가 '신청가능상태 = 모집중'이 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
 //        }
 //
-//        if(requireAttendance <= 0 || requireAttendance >= 10){
-//            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
+//        // 강좌 ID를 사용하여 해당 강좌의 모든 주차별 상세 내용 개수를 합산(수업 횟수)
+//        int totalWeekPlanCount = getTotalWeekPlanCount(lectureId);
+//        if (requireAttendance <= 0 || requireAttendance > totalWeekPlanCount) {
+//            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회 이상, 주차별 상세 내용의 개수 " + totalWeekPlanCount + "개 이하로 설정해주세요.");
 //        }
+//
 //        AttendanceEntity attendanceEntity = AttendanceEntity.builder()
 //                .create_id(lecture)
 //                .required_attendance(requireAttendance)

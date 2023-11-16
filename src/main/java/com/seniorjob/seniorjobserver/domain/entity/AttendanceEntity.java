@@ -29,13 +29,6 @@ public class AttendanceEntity extends TimeEntity{
     @CreatedDate
     private LocalDateTime createdDate;
 
-    public void setRequiredAttendance(int requiredAttendance) {
-        if (requiredAttendance <= 0 || requiredAttendance >= 5) {
-            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 5회 이하로 설정해 주세요");
-        }
-        this.required_attendance = requiredAttendance;
-    }
-
     @Builder
     public AttendanceEntity(Long attendance_id, LectureEntity create_id, int required_attendance){
         this.attendance_id = attendance_id;
