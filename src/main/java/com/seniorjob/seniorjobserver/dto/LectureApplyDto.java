@@ -20,6 +20,7 @@ public class LectureApplyDto {
 
     @JsonIgnore
     private UserEntity user;
+    private Long uid;
 
     private String userName;
     private String applyReason;
@@ -48,12 +49,12 @@ public class LectureApplyDto {
 
     public LectureApplyDto(LectureApplyEntity lectureApply) {
         this.leId = lectureApply.getLeId();
+        this.uid = lectureApply.getUser().getUid();
         this.applyReason = lectureApply.getApplyReason();
         this.createdDate = lectureApply.getCreatedDate();
         this.userName = lectureApply.getUser().getName();
         this.lectureApplyStatus = lectureApply.getLectureApplyStatus();
         this.recruitmentClosed = lectureApply.getRecruitmentClosed();
-
         this.lecture = lectureApply.getLecture();
         this.lectureTitle = lectureApply.getLecture().getTitle();
         this.lectureStatus = lectureApply.getLecture().getStatus();
