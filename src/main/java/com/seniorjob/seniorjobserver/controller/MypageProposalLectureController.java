@@ -75,7 +75,7 @@ public class MypageProposalLectureController {
     @GetMapping("/filter")
     public ResponseEntity<Page<MypageLectureProposalDto>> getMyProposedLectures(
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "filter", required = false, defaultValue = "latest") String filter,
             @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "5", name = "size") int size,
             @RequestParam(value = "descending", defaultValue = "true") boolean descending,
