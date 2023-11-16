@@ -109,7 +109,7 @@ public class MypageCreateLectureController {
     @GetMapping("/filter")
     public ResponseEntity<Page<LectureDto>> filterAndPaginateLectures(
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "filter", required = false, defaultValue = "latest") String filter,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(defaultValue = "1", name = "page") int page,
             @RequestParam(defaultValue = "5", name = "size") int size,
