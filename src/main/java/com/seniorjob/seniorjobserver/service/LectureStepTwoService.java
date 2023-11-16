@@ -96,13 +96,6 @@ public class LectureStepTwoService {
                 details);
     }
 
-    // 강좌개설 1단계의 id에 해당하는 주차별 상세 내용의 개수를 구하는 메서드
-    public int getTotalWeekPlanCount(Long lectureId) {
-        List<WeekEntity> weeks = weekRepository.findByLectureId(lectureId);
-        return weeks.stream()
-                .mapToInt(week -> week.getPlans().size())
-                .sum();
-    }
 
 
 
