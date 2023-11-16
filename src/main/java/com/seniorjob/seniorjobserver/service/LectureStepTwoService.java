@@ -97,26 +97,26 @@ public class LectureStepTwoService {
     }
 
     // 강좌개설 2단계에서 수료 출석 조건 설정 Service
-    public AttendanceDto setAttendanceCondition(Long lectureId, int requireAttendance){
-        LectureEntity lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(()-> new ResourceNotFoundException("강좌개설2단계에서 해당 주차를 찾을 수 없습니다."));
-
-        // 강좌 상태 검사
-        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
-            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
-        }
-
-        if(requireAttendance <= 0 || requireAttendance >= 10){
-            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
-        }
-        AttendanceEntity attendanceEntity = AttendanceEntity.builder()
-                .create_id(lecture)
-                .required_attendance(requireAttendance)
-                .build();
-        attendanceRepository.save(attendanceEntity);
-
-        return new AttendanceDto(attendanceEntity);
-    }
+//    public AttendanceDto setAttendanceCondition(Long lectureId, int requireAttendance){
+//        LectureEntity lecture = lectureRepository.findById(lectureId)
+//                .orElseThrow(()-> new ResourceNotFoundException("강좌개설2단계에서 해당 주차를 찾을 수 없습니다."));
+//
+//        // 강좌 상태 검사
+//        if (lecture.getStatus() != LectureEntity.LectureStatus.신청가능상태) {
+//            throw new IllegalStateException("강좌 상태가 '신청가능상태'가 아닙니다. 수료조건 출석횟수를 설정할 수 없습니다.");
+//        }
+//
+//        if(requireAttendance <= 0 || requireAttendance >= 10){
+//            throw new IllegalArgumentException("수료에 필요한 출석 회수를 1회이상 10회 이하로 설정해 주세요");
+//        }
+//        AttendanceEntity attendanceEntity = AttendanceEntity.builder()
+//                .create_id(lecture)
+//                .required_attendance(requireAttendance)
+//                .build();
+//        attendanceRepository.save(attendanceEntity);
+//
+//        return new AttendanceDto(attendanceEntity);
+//    }
 
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Service
     public CreateLectureFullInfoDto getFullLectureInfo(Long lectureId) {
