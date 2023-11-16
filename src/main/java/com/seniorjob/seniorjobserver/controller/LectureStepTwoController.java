@@ -89,27 +89,7 @@ public class LectureStepTwoController {
         return ResponseEntity.ok(newPlanDto);
     }
 
-    // 수료출석조건등록Controller ex) 주 n회 이상 출석시 수료
-//    @PostMapping("/{lectureId}/attendance")
-//    public ResponseEntity<AttendanceDto> setAttendanceCondition(
-//            @PathVariable Long lectureId,
-//            @RequestParam int requiredAttendance,
-//            @AuthenticationPrincipal UserDetails userDetails){
-//
-//        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-//                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-//
-//        // 현재 사용자가 강좌의 생성자인지 확인
-//        LectureEntity lectureEntity = lectureRepository.findById(lectureId)
-//                .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + lectureId));
-//
-//        if (!lectureEntity.getUser().equals(currentUser)) {
-//            throw new RuntimeException("해당 강좌의 수료조건을 작성할 권한이 없습니다.");
-//        }
-//
-//        AttendanceDto attendanceDto = lectureStepTwoService.setAttendanceCondition(lectureId, requiredAttendance);
-//        return ResponseEntity.ok(attendanceDto);
-//    }
+
 
     // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인하는 API Controller
     @GetMapping("/{lectureId}/review")
@@ -223,27 +203,6 @@ public class LectureStepTwoController {
                 "주차별상세내용 번호 %d 가 삭제되었습니다.", lectureId, weekId, planId));
     }
 
-    // 3. attendance수정API Controller 출석조건은 수정만가능하다.
-//    @PutMapping("{lectureId}/update-attendance")
-//    public ResponseEntity<AttendanceDto> updateAttendanceCondition(
-//            @PathVariable Long lectureId,
-//            @RequestParam int requiredAttendance,
-//            @AuthenticationPrincipal UserDetails userDetails) {
-//
-//        UserEntity currentUser = userRepository.findByPhoneNumber(userDetails.getUsername())
-//                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
-//
-//        // 현재 사용자가 강좌의 생성자인지 확인
-//        LectureEntity lectureEntity = lectureRepository.findById(lectureId)
-//                .orElseThrow(() -> new RuntimeException("강좌아이디 찾지못함 create_id: " + lectureId));
-//        if (!lectureEntity.getUser().equals(currentUser)) {
-//            throw new RuntimeException("해당 강좌의 출석조건을 수정할 권한이 없습니다.");
-//        }
-//
-//        AttendanceDto updatedAttendance = lectureStepTwoService.updateAttendanceCondition(lectureId, requiredAttendance);
-//        return ResponseEntity.ok(updatedAttendance);
-//    }
 
-    // 강좌개설 3단계 : 1,2단게에서 입력한 모든 정보를 확인한뒤 "강좌개설" 클릭시 강좌가 최종 개설되는 API Contorller
 
 }
