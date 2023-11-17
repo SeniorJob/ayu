@@ -16,7 +16,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://localhost:5173",
                         "http://localhost:4173",
                         "http://localhost:63342",
-                        "seniorjob.shop",
+                        "http://seniorjob.shop/",
                         "http://nuyhv-project-seniorjob.s3-website.ap-northeast-2.amazonaws.com",
                         "https://d3m49wt414afpm.cloudfront.net",
                         "http://d3m49wt414afpm.cloudfront.net"
